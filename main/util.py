@@ -7,7 +7,7 @@ from torch.utils.data import Dataset
 torch.set_default_dtype(torch.float32)
 
 
-class VoiceData(Dataset):
+class WavData(Dataset):
     def __init__(self, path: str, device: str = 'cpu'):
         """
         Assume directory structure be like:
@@ -26,7 +26,7 @@ class VoiceData(Dataset):
         :param path: Path to the root of all genres
         :param device: Where the data is going to be sent to ('cpu' or 'cuda')
         """
-        cats = sorted(os.listdir(path))
+        cats = sorted(os.listdir(path)) #cats = categories
 
         x = []
         y = []
