@@ -1,0 +1,16 @@
+To-Do:
+
+    Exploratory Data Analysis:
+        * Make our own spectrograms from wav files
+        * Plot features
+
+    Neural Nets:
+        * Create feed-forward neural network
+        * Create convolutional neural network with residual connection
+        * Create recurrent neural network
+        * Create Seq2Seq with attention
+
+    Tuning Hyperparameters:
+        * Learning rate
+        * Batch size
+        * Initialized weights
