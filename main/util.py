@@ -1,10 +1,71 @@
 import os
+from typing import List
 
+import numpy as np
+import pandas as pd
 import torch
 import torchaudio
 from torch.utils.data import Dataset
 
 torch.set_default_dtype(torch.float32)
+
+
+def loadCSV(filepath: str) -> tuple[torch.Tensor, torch.Tensor, int]:
+    """
+    :param str filepath:
+    :rtype: tuple[torch.Tensor, torch.Tensor, int]
+    """
+    features_df = pd.read_csv(filepath)
+    length = len(features_df.index)
+
+    # First drop the file name, it is not needed.
+    del features_df['filename']
+
+    # Save the names of the categories
+    cats = ["blues", "classical", "country", "disco", "hiphop", "jazz", "metal", "pop", "reggae", "rock"]
+
+    # First save the label column to a separate variable, which can then be turned into onehot Tensor.
+    labels_df = features_df['label']
+    labels = makeOnehotTensorFromDataframe(cats, labels_df)
+
+    # Then drop the label column and turn the features into a Tensor.
+    del features_df['label']
+    features = torch.as_tensor(features_df.values, dtype=torch.float32)
+    return features, labels, length
+
+
+def makeOnehotTensorFromNdarray(cats: list[str], keys: np.ndarray) -> torch.Tensor:
+    labels_list = []
+    n = len(keys)
+    for i in range(0, n):
+        key = keys[n]
+        result = makeOnehot(cats, key, i)
+        labels_list.append(result)
+    labels = torch.as_tensor(labels_list, dtype=torch.float32)
+    return labels
+
+
+def makeOnehotTensorFromDataframe(cats: list[str], keys: pd.DataFrame) -> torch.Tensor:
+    labels_list = []
+    total_cats = len(cats)
+    index = 0
+    for key in keys:
+        result = makeOnehot(cats, total_cats, key, index)
+        labels_list.append(result)
+        index += 1
+    labels = torch.as_tensor(labels_list, dtype=torch.float32)
+    return labels
+
+
+def makeOnehot(cats: list[str], total_cats: int, key: str, index: int) -> list[int]:
+    try:
+        i = cats.index(key)
+    except IndexError as e:
+        raise IndexError(f'The genre ({key}) I got is not in the list ({cats}).')
+    else:
+        result = [0] * total_cats
+        result[i] = 1
+        return result
 
 
 class WavData(Dataset):
