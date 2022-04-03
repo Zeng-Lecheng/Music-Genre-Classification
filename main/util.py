@@ -69,7 +69,7 @@ def makeOnehot(cats: list[str], total_cats: int, key: str, index: int) -> list[i
         return result
 
 
-def onehot(cats: list[str], key: str) -> torch.Tensor:
+def torch_onehot(cats: list[str], key: str) -> torch.Tensor:
     """
     Generate the onehot tensor of given categories and key.
     Example
@@ -116,7 +116,7 @@ class WavData(Dataset):
         self.x = torch.zeros((1, 1))
         self.y = torch.zeros((1, len(cats)))
         for genre in os.listdir(path):
-            current_onehot = onehot(cats, genre)
+            current_onehot = torch_onehot(cats, genre)
             for file in os.listdir(f'{path}/{genre}'):
                 # Assume sample rates of all the files are the same
                 current_x, self.sample_rate = torchaudio.load(open(f'{path}/{genre}/{file}', 'rb'))
@@ -172,7 +172,7 @@ class PngData(Dataset):
         self.x = torch.zeros(shape)
         self.y = torch.zeros((1, len(cats)))
         for genre in os.listdir(path):
-            current_onehot = onehot(cats, genre)
+            current_onehot = torch_onehot(cats, genre)
             for file in os.listdir(f'{path}/{genre}'):
                 current_x = read_image(f'{path}/{genre}/{file}')[None, :]
                 self.x = torch.concat((self.x, current_x))
