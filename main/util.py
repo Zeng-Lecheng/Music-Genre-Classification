@@ -31,6 +31,9 @@ def loadCSV(filepath: str) -> tuple[torch.Tensor, torch.Tensor, int]:
 
     # Then drop the label column and turn the features into a Tensor.
     del features_df['label']
+    # normalization
+    for col in features_df.columns:
+        features_df[col] = (features_df[col] - min(features_df[col])) / (max(features_df[col]) - min(features_df[col]))
     features = torch.as_tensor(features_df.values, dtype=torch.float32)
     return features, labels, length
 

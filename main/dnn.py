@@ -23,7 +23,7 @@ def main(seconds: str):
     loader = DataLoader(trainDataset, batch_size=batches)
 
     # Setting up the neural net and components to make it run
-    epochs = 1
+    epochs = 100
     net = DeepNeuralNet()
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=0.001)
@@ -76,7 +76,7 @@ class DeepNeuralNet(nn.Module):
         :return:
         """
         x = F.relu(self.ffLayer1(x))
-        x = torch.sigmoid(self.ffLayer2(x))
+        x = F.sigmoid(self.ffLayer2(x))
         return x
 
 
