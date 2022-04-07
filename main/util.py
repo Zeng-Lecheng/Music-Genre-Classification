@@ -15,7 +15,6 @@ def loadCSV(filepath: str) -> tuple[torch.Tensor, torch.Tensor, int]:
     """
     :param str filepath:
     :rtype: tuple[torch.Tensor, torch.Tensor, int]
-    sfdsfds
     """
     features_df = pd.read_csv(filepath)
     length = len(features_df.index)
