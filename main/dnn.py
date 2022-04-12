@@ -22,15 +22,16 @@ def main():
     result_list = {}
     lr_list = [0.0005, 0.001, 0.005, 0.01, 0.05, 0.1, 0.5]
     b_list = [5, 10, 50, 100, 500, 1000]
-    e_list = [100, 100, 1000, 2000, 5000]
+    e_list = [100, 1000, 2000, 5000]
     for lr in lr_list:
         for b in b_list:
             for e in e_list:
-                key = "Model Run lr=", lr, " b=", b, " e=", e
-                print(key)
+                key = "Model Run lr=" + str(lr) + " b=" + str(b) + " e=" + str(e)
+                print(key, end=" ")
                 result = model(trainDataset, testDataset, lr, b, e)
-                print(result)
+                print("Accuracy: " + str(result))
                 result_list[key] = result
+    print(result_list)
 
 
 def model(trainDataset, testDataset, learning_rate: float, batch_num: int, epoch_num: int):
@@ -48,7 +49,8 @@ def model(trainDataset, testDataset, learning_rate: float, batch_num: int, epoch
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
-        print("#", end="")
+        if epoch % 10 == 0:
+            print("#", end="")
     print()
     return model_test(testDataset, net)
 
@@ -86,7 +88,7 @@ class DeepNeuralNet(nn.Module):
         :return:
         """
         x = F.relu(self.ffLayer1(x))
-        x = F.sigmoid(self.ffLayer2(x))
+        x = torch.sigmoid(self.ffLayer2(x))
         return x
 
 
