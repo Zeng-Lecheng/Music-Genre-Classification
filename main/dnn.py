@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 # import scipy
+from tqdm import tqdm
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -20,39 +21,40 @@ def main():
     trainDataset, testDataset = torch.utils.data.random_split(TensorDataset(x, y), [train_length, test_length])
 
     result_list = {}
-    lr_list = [0.0005, 0.001, 0.005, 0.01, 0.05, 0.1, 0.5]
+    lr_list = [0.0005, 0.001, 0.005, 0.01]
     b_list = [5, 10, 50, 100, 500, 1000]
-    e_list = [100, 1000, 2000, 5000]
+
     for lr in lr_list:
+        fig, ax = plt.subplots()
         for b in b_list:
-            for e in e_list:
-                key = "Model Run lr=" + str(lr) + " b=" + str(b) + " e=" + str(e)
-                print(key, end=" ")
-                result = model(trainDataset, testDataset, lr, b, e)
-                print("Accuracy: " + str(result))
-                result_list[key] = result
-    print(result_list)
+            ax.plot(model(trainDataset, testDataset, lr, b, 5000, "acc"), label=str(f'Batches={b}, LR={lr}'))
+        ax.set_title("Percent Accuracy over Epochs")
+        ax.legend()
+        plt.xlabel("Epoch")
+        plt.ylabel("Percent Accuracy")
+        plt.show()
 
 
-def model(trainDataset, testDataset, learning_rate: float, batch_num: int, epoch_num: int):
+def model(trainDataset, testDataset, learning_rate: float, batch_num: int, epoch_num: int, rtype: str):
     loader = DataLoader(trainDataset, batch_size=batch_num)
     epochs = epoch_num
     net = DeepNeuralNet()
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=learning_rate)
-    print("Progress: ", end="")
-    for epoch in range(0, epochs):  # loop over the dataset multiple times
-        for i, data in enumerate(loader):
-            inputs, labels = data
-            optimizer.zero_grad()
-            outputs = net(inputs)
-            loss = criterion(outputs, labels)
-            loss.backward()
-            optimizer.step()
-        if epoch % 10 == 0:
-            print("#", end="")
-    print()
-    return model_test(testDataset, net)
+    acc = []
+    with tqdm(total=epoch_num) as progressbar:
+        for epoch in range(0, epochs):  # loop over the dataset multiple times
+            for i, data in enumerate(loader):
+                inputs, labels = data
+                optimizer.zero_grad()
+                outputs = net(inputs)
+                loss = criterion(outputs, labels)
+                loss.backward()
+                optimizer.step()
+            if rtype == "acc":
+                acc.append(model_test(testDataset, net))
+            progressbar.update(1)
+    return acc
 
 
 def model_test(testDataset, net):
