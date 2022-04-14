@@ -7,12 +7,13 @@ from tqdm import tqdm
 
 from util import WavData
 
-device = 'cuda'
+device = 'cpu'
 
-from torch.utils.tensorboard import SummaryWriter
-writer = SummaryWriter()
+# from torch.utils.tensorboard import SummaryWriter
 
-torch.set_num_threads(2)
+# writer = SummaryWriter()
+
+# torch.set_num_threads(1)
 
 
 class RNNet(nn.Module):
@@ -27,7 +28,7 @@ class RNNet(nn.Module):
         lstm_out, hc = self.lstm(x)
         h_0 = torch.relu(hc[0][0])
 
-        ave_out = torch.relu(torch.sum(lstm_out, dim=1))
+        ave_out = torch.sum(lstm_out, dim=1) / lstm_out.shape[1]
         # x = torch.relu(self.fc_1(h_0))
         x = torch.relu(self.fc_1(ave_out))
         x = torch.relu(self.fc_2(x))
@@ -40,7 +41,7 @@ def model_train(learning_rate: float, batch_size: int, verbose: bool = False, te
     test_size = len(dataset) - train_size
     train_set, test_set = random_split(dataset, [train_size, test_size])
 
-    train_dataloader = DataLoader(train_set, batch_size=batch_size)
+    train_dataloader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
     net = RNNet().to(device)
     optimizer = optim.Adam(net.parameters(), lr=learning_rate)
     criterion = nn.CrossEntropyLoss().to(device)
@@ -59,13 +60,13 @@ def model_train(learning_rate: float, batch_size: int, verbose: bool = False, te
         if test_while_train:
             epoch_acc = model_test(test_set, net)
             acc.append(epoch_acc)
-            writer.add_scalar('Accuracy/test', epoch_acc, epoch)
+            # writer.add_scalar('Accuracy/test', epoch_acc, epoch)
             if verbose:
                 print(f'Epoch: {epoch} Loss: {epoch_loss} Accuracy: {epoch_acc}')
         elif verbose:
             print(f'Epoch: {epoch} Loss: {epoch_loss}')
 
-        writer.add_scalar('Loss/train', epoch_loss, epoch)
+        # writer.add_scalar('Loss/train', epoch_loss, epoch)
 
     return acc
 
@@ -85,6 +86,9 @@ def model_test(test_set, net) -> float:
 
 
 if __name__ == '__main__':
-    acc = model_train(0.01, 10, True)
-    plt.plot(range(1 + len(acc)), acc)
+    acc = model_train(learning_rate=.0003,
+                      batch_size=50,
+                      verbose=False,
+                      test_while_train=True)
+    plt.plot(range(1, len(acc) + 1), acc)
     plt.show()
