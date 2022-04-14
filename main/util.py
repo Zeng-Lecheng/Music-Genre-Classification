@@ -124,6 +124,7 @@ class WavData(Dataset):
                 # Assume sample rates of all the files are the same
                 current_x, self.sample_rate = torchaudio.load(open(f'{path}/{genre}/{file}', 'rb'))
 
+                current_x = current_x[:, :600]     # too large, cut it short
                 # Do zero padding if size does not match
                 if current_x.shape[1] > self.x.shape[1]:
                     pad_self_x = torch.zeros((self.x.shape[0], current_x.shape[1]))
@@ -138,7 +139,8 @@ class WavData(Dataset):
 
                 self.y = torch.concat((self.y, current_onehot))
 
-        self.x = self.x[1:]
+        self.x = self.x[1:, :, None]
+        self.x = self.x / (self.x.max() - self.x.min())     # normalization
         self.y = self.y[1:]
         self.device = device
 
