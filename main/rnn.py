@@ -23,6 +23,9 @@ class RNNet(nn.Module):
         self.lstm_2 = nn.LSTM(128, 32, 1, batch_first=True)
         self.lstm_3 = nn.LSTM(32, 32, 1, batch_first=True)
         self.rnn_1 = nn.RNN(1, 128, 1, batch_first=True)
+        self.rnn_2 = nn.RNN(128, 32, 1, batch_first=True)
+        self.rnn_3 = nn.RNN(32, 32, 1, batch_first=True)
+        self.rnn_4 = nn.RNN(32, 32, 1, batch_first=True)
         self.drop_1 = nn.Dropout(0.5)
         self.drop_2 = nn.Dropout(0.3)
         self.fc_1 = nn.Linear(128, 32)
@@ -31,15 +34,18 @@ class RNNet(nn.Module):
 
     def forward(self, x):
         # ref: https://www.diva-portal.org/smash/get/diva2:1354738/FULLTEXT01.pdf
-        lstm_out, hc = self.rnn_1(x)
-        # lstm_out, hc = self.lstm_2(self.drop_1(lstm_out))
-        # lstm_out, hc = self.lstm_3(self.drop_2(lstm_out))
+        x, hc = self.rnn_1(x)
+        x, hc = self.rnn_2(x)
+        x, hc = self.rnn_3(x)
+        # x, hc = self.rnn_4(x)
+        # out, hc = self.lstm_2(self.drop_1(out))
+        # out, hc = self.lstm_3(self.drop_2(out))
         # h_0 = torch.relu(hc[0][0])
-
-        ave_out = torch.sum(lstm_out, dim=1) / lstm_out.shape[1]
+        hidden_state = hc[0]
+        ave_out = torch.sum(x, dim=1) / x.shape[1]
         # x = torch.relu(self.fc_1(h_0))
-        x = torch.relu(self.fc_1(ave_out))
-        x = torch.relu(self.fc_2(x))
+        x = torch.relu(self.fc_2(hidden_state))
+        # x = torch.relu(self.fc_3(x))
         x = torch.sigmoid(self.fc_3(x))
         return x
 
@@ -71,11 +77,13 @@ def model_train(epochs: int,
             epoch_loss += batch_loss.item() / len(x_train)
 
         if test_while_train:
-            epoch_acc = model_test(train_set, net)
-            acc.append(epoch_acc)
-            writer.add_scalar('Accuracy/test', epoch_acc, epoch)
+            test_acc = model_test(test_set, net)
+            train_acc = model_test(train_set, net)
+            acc.append(test_acc)
+            # writer.add_scalar('Accuracy/test', test_acc, epoch)
+            # writer.add_scalar('Accuracy/train', train_acc, epoch)
             if verbose:
-                print(f'Epoch: {epoch} Loss: {epoch_loss} Accuracy: {epoch_acc}')
+                print(f'Epoch: {epoch} Loss: {epoch_loss} Accuracy: {test_acc}')
         elif verbose:
             print(f'Epoch: {epoch} Loss: {epoch_loss}')
 
@@ -101,6 +109,6 @@ def model_test(test_set, net) -> float:
 
 
 if __name__ == '__main__':
-    acc = model_train(epochs=5000, learning_rate=.0005, batch_size=50, verbose=False, test_while_train=True)
+    acc = model_train(epochs=5000, learning_rate=.00005, batch_size=50, verbose=False, test_while_train=True)
     plt.plot(range(1, len(acc) + 1), acc)
     plt.show()
