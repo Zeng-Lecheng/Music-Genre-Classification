@@ -14,7 +14,8 @@ import util
 
 
 def main():
-    data = DataLoader(util.WavData('../data/genres_original'))
+    dataset = util.WavData('../data/genres_original')
+    data = DataLoader(dataset)
 
 
 def model():
@@ -27,10 +28,7 @@ def test():
 
 class Encoder(nn.Module):
     def __init__(self):
-        super(Encoder, self).__init__()
-        # Initialize the layers
-
-
+        super(Encoder, self).__init__()  # Initialize the layers
 
     def forward(self, x):
         """
@@ -43,9 +41,7 @@ class Encoder(nn.Module):
 
 class Decoder(nn.Module):
     def __init__(self):
-        super(Decoder, self).__init__()
-        # Initialize the layers
-
+        super(Decoder, self).__init__()  # Initialize the layers
 
     def forward(self, x):
         """
@@ -59,9 +55,7 @@ class Decoder(nn.Module):
 
 class AttentionDecoder(Decoder):
     def __init__(self):
-        super(Decoder, self).__init__()
-        # Initialize the layers
-
+        super(Decoder, self).__init__()  # Initialize the layers
 
     def forward(self, x):
         """
@@ -71,7 +65,8 @@ class AttentionDecoder(Decoder):
 
         return x
 
-def getVGGishEmbeddings(filepath = '../data/vggish'):
+
+def getVGGishEmbeddings(filepath='../data/vggish'):
     embedding_pipeline = pipeline('towhee/audio-embedding-vggish')
     dataset_path = filepath
     music_list = [f for f in Path(dataset_path).glob('*')]
@@ -89,7 +84,21 @@ def getVGGishEmbeddings(filepath = '../data/vggish'):
         for vec in vec_sets[i]:
             vectors.append(vec)
     print(vectors)
-    with open('embeddings.txt', 'w') as f:
+    with open('gtzan_embeddings.txt', 'w') as f:
         csvwriter = csv.writer(f)
         csvwriter.writerows(vectors)
 
+
+def loadEmbeddingsFromTXT(filepath='gtzan_embeddings.txt'):
+    word_embed = np.zeros((30969 + 2, 128))
+    i = 0
+    with open(filepath, 'r') as f:
+        for line in f:
+            line = line.split(',')
+            word_vec = np.array(line).astype(float)
+            word_embed[i] = word_vec  # read word_embeddings.txt to obtain word_embedding
+            i = i + 1
+    return word_embed
+
+
+main()
