@@ -14,16 +14,18 @@ torch.manual_seed(0)
 
 
 def train():
-    train_data = int(len(PngData('../data/images_original'))* .8)
+    train_data = int(len(PngData('../data/images_original'))* .7)/3
+    #print(train_data)
     test_data = len(PngData('../data/images_original')) - train_data
-    train_set, test_set = random_split(PngData('../data/images_original'), [train_data, test_data])
+    #print(test_data)
+    train_set, test_set = random_split(PngData('../data/images_original'), [int(train_data), int(test_data)])
     dataloader = DataLoader(train_set, batch_size=5)
-
+    #print(train_set.shape())
     cel = nn.CrossEntropyLoss()
     total_loss = []
-    epoch_num = 5#100
+    epoch_num = 30#100
     rcnn_0 = RcnnNet().to('cpu')
-    optimizer = optim.Adam(rcnn_0.parameters())
+    optimizer = optim.Adam(rcnn_0.parameters(), lr=0.0001)
     for epoch in range(0, epoch_num + 1):  # loop over the dataset multiple times
         loss_in_epoch = []
         for i, (images, labels) in enumerate(dataloader, 0):
@@ -45,6 +47,7 @@ def train():
         print('For epoch', epoch + 1, 'the test accuracy over the whole test set is %f %%' % (accuracy))
     print(total_loss)
     print('Finished Training')
+
 #"""
 
 
@@ -89,7 +92,8 @@ class RcnnNet(nn.Module):  # have to change numbers depending on data
     def __init__(self):
         super(RcnnNet, self).__init__()
 
-        self.conv1 = nn.Conv2d(4, 10, 288, 432, groups=2)
+        self.conv1 = nn.Conv2d(4, 10, 288,288, groups=2)
+        #self.conv2 = nn.Conv2d(10, 64, 1, 1, groups=2)
         #self.conv2 = nn.Conv2d(10, 64, 288, 432, groups=2)
         """
         self.conv1 = nn.Conv2d(3, 8, 3)
@@ -108,7 +112,9 @@ class RcnnNet(nn.Module):  # have to change numbers depending on data
 
 
     def forward(self, x):
-        x = self.conv1(x)
+        #x = F.relu(self.conv1(x))
+        x = F.relu(self.conv1(x))
+        #x = F.relu(self.conv2(x))
         #x = self.conv2(x)
         """
          x_pre_input = x
