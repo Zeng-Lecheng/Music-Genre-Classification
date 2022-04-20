@@ -9,18 +9,18 @@ import torch.optim as optim
 from torch.utils.data import TensorDataset, DataLoader
 import util
 
-torch.manual_seed(0)
-
 
 def main():
-    x, y, length = util.loadCSV(f'../data/features_30_sec.csv')
-    train_length = int(length * 0.8)
-    test_length = int(length * 0.2)
-    if train_length + test_length != length:
-        raise Exception("you have int problems with the random split")
-    trainDataset, testDataset = torch.utils.data.random_split(TensorDataset(x, y), [train_length, test_length])
+    pass
 
-    result_list = {}
+
+def hyperparameter_test_1():
+    """This function tests out different learning rates and batch sizes and plots them over epochs.
+    It becomes clear that LR=0.001 and batch size=10 produces the most consistently best results,
+    but is that due to the seed we are currently using? What if I plotted multiple different seeds?"""
+    torch.manual_seed(0)
+    trainDataset, testDataset = read_data()
+
     lr_list = [0.0005, 0.001, 0.005, 0.01]
     b_list = [5, 10, 50, 100, 500, 1000]
 
@@ -33,6 +33,32 @@ def main():
         plt.xlabel("Epoch")
         plt.ylabel("Percent Accuracy")
         plt.show()
+
+
+def hyperparameter_test_2():
+    """"""
+    torch.manual_seed(0)
+    fig, ax = plt.subplots()
+    for i in range(0, 5):
+        trainDataset, testDataset = read_data()
+        ax.plot(model(trainDataset, testDataset, 0.005, 500, 5000, "acc"))
+    ax.set_title("Percent Accuracy over Epochs")
+    ax.legend()
+    plt.xlabel("Epoch")
+    plt.ylabel("Percent Accuracy")
+    plt.show()
+
+
+def read_data():
+    """I separated out reading the data from the model so that the model could be run multiple times without having
+    to reread the data in every time."""
+    x, y, length = util.loadCSV(f'../data/features_30_sec.csv')
+    train_length = int(length * 0.8)
+    test_length = int(length * 0.2)
+    if train_length + test_length != length:
+        raise Exception("you have int problems with the random split")
+    trainDataset, testDataset = torch.utils.data.random_split(TensorDataset(x, y), [train_length, test_length])
+    return trainDataset, testDataset
 
 
 def model(trainDataset, testDataset, learning_rate: float, batch_num: int, epoch_num: int, rtype: str):
@@ -94,4 +120,4 @@ class DeepNeuralNet(nn.Module):
         return x
 
 
-main()
+hyperparameter_test_2()
