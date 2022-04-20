@@ -40,17 +40,17 @@ def train():
             images = Variable(images.to('cpu'))
             labels = Variable(labels.to('cpu'))
             # zero the parameter gradients
-            optimizer.zero_grad()
+            optimizer.zero_grad()   # TODO : slow
             outputs = rcnn_0(images)
             loss = cel(outputs, labels)
             # forward + backward + optimize
-            loss.backward()
+            loss.backward() # TODO : slow
             optimizer.step()
             loss_in_epoch.append(loss.item())
         total_loss.append(mean(loss_in_epoch))
 
         #accuracy = test(rcnn_0, test_set)
-        print('For epoch', epoch + 1, 'the test accuracy over the whole test set is %f %%' % (accuracy))
+        # print('For epoch', epoch + 1, 'the test accuracy over the whole test set is %f %%' % (accuracy))
     print(total_loss)
     print('Finished Training')
 
@@ -110,7 +110,7 @@ class RcnnNet(nn.Module):  # have to change numbers depending on data
 
         self.fc_1 = nn.Linear(64 * 216 * 576, 120)
         self.fc_2 = nn.Linear(120, 64)
-        self.fc_3 = nn.Linear(64, 2)
+        self.fc_3 = nn.Linear(64, 10)
         self.Sigmoid = nn.Sigmoid()
 
 
@@ -125,7 +125,7 @@ class RcnnNet(nn.Module):  # have to change numbers depending on data
 
         # flattens tensor
         x = x.view(x.size(0), -1)  # number of samples in batch
-        x = F.relu(self.fc_1(x))
+        x = F.relu(self.fc_1(x))    # TODO: slow
         x = F.relu(self.fc_2(x))
         x = F.sigmoid(self.fc_3(x))
 
@@ -133,5 +133,3 @@ class RcnnNet(nn.Module):  # have to change numbers depending on data
 
 
 train()
-
-
