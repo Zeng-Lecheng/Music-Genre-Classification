@@ -1,3 +1,5 @@
+import pickle
+
 import numpy as np
 import matplotlib.pyplot as plt
 # import scipy
@@ -14,11 +16,12 @@ torch.manual_seed(0)
 
 
 def train():
-    train_data = int(len(PngData('../small_data/images_original'))* .7)#/3
+    png_data = pickle.load(open('../png_data.pkl'))
+    train_data = int(len(png_data)* .7)#/3
     print(train_data)
-    test_data = len(PngData('../small_data/images_original')) - train_data
+    test_data = len(png_data) - train_data
     print(test_data)
-    train_set, test_set = random_split(PngData('../small_data/images_original'), [int(train_data), int(test_data)])
+    train_set, test_set = random_split(png_data, [int(train_data), int(test_data)])
     print(len(train_set))
     print(len(test_set))
     dataloader = DataLoader(train_set, batch_size=10)
