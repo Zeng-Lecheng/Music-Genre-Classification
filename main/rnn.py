@@ -19,6 +19,8 @@ device = 'cpu'
 class RNNet(nn.Module):
     def __init__(self):
         super().__init__()
+        self.kernel_1 = 5
+
         self.lstm_1 = nn.LSTM(1, 128, 1, batch_first=True)
         self.lstm_2 = nn.LSTM(128, 32, 1, batch_first=True)
         self.lstm_3 = nn.LSTM(32, 32, 1, batch_first=True)
@@ -29,8 +31,12 @@ class RNNet(nn.Module):
         self.drop_1 = nn.Dropout(0.5)
         self.drop_2 = nn.Dropout(0.3)
         self.fc_1 = nn.Linear(128, 32)
+        self.fc_1_conv = nn.Linear((900 - 4) // 2 * 8, 32)
         self.fc_2 = nn.Linear(32, 12)
         self.fc_3 = nn.Linear(12, 10)
+
+        self.conv_1 = nn.Conv1d(32, 8, self.kernel_1)
+
 
     def forward(self, x):
         # ref: https://www.diva-portal.org/smash/get/diva2:1354738/FULLTEXT01.pdf
@@ -41,11 +47,14 @@ class RNNet(nn.Module):
         # out, hc = self.lstm_2(self.drop_1(out))
         # out, hc = self.lstm_3(self.drop_2(out))
         # h_0 = torch.relu(hc[0][0])
-        hidden_state = hc[0]
+        # hidden_state = hc[0]
+
         ave_out = torch.sum(x, dim=1) / x.shape[1]
-        # x = torch.relu(self.fc_1(h_0))
-        x = torch.relu(self.fc_2(hidden_state))
-        # x = torch.relu(self.fc_3(x))
+        x = torch.swapaxes(x, 1, 2)
+        x = torch.relu(torch.max_pool1d(self.conv_1(x), 2))
+        x = torch.flatten(x, 1)
+        x = torch.relu(self.fc_1_conv(x))
+        x = torch.relu(self.fc_2(x))
         x = torch.sigmoid(self.fc_3(x))
         return x
 
@@ -109,6 +118,6 @@ def model_test(test_set, net) -> float:
 
 
 if __name__ == '__main__':
-    acc = model_train(epochs=5000, learning_rate=.00005, batch_size=50, verbose=False, test_while_train=True)
+    acc = model_train(epochs=1000, learning_rate=.00005, batch_size=50, verbose=False, test_while_train=True)
     plt.plot(range(1, len(acc) + 1), acc)
     plt.show()
