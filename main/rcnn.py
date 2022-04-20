@@ -16,19 +16,18 @@ torch.manual_seed(0)
 
 
 def train():
-    png_data = pickle.load(open('../png_data.pkl', 'rb'))
+    png_data = pickle.load(open('png_data.pkl', 'rb'))
     train_data = int(len(png_data)* .7)#/3
-    print(train_data)
+
     test_data = len(png_data) - train_data
-    print(test_data)
+
     train_set, test_set = random_split(png_data, [int(train_data), int(test_data)])
-    print(len(train_set))
-    print(len(test_set))
+
     dataloader = DataLoader(train_set, batch_size=10)
     #print(train_set.shape())
     #"""
 
-    cel = nn.CrossEntropyLoss()
+    cel = nn.BCELoss()
     total_loss = []
     epoch_num = 10#100
     rcnn_0 = RcnnNet().to('cpu')
@@ -43,7 +42,7 @@ def train():
             # zero the parameter gradients
             optimizer.zero_grad()
             outputs = rcnn_0(images)
-            loss = cel(torch.squeeze(outputs), torch.squeeze(labels))
+            loss = cel(outputs, labels)
             # forward + backward + optimize
             loss.backward()
             optimizer.step()
@@ -54,7 +53,6 @@ def train():
         print('For epoch', epoch + 1, 'the test accuracy over the whole test set is %f %%' % (accuracy))
     print(total_loss)
     print('Finished Training')
-
 
 
 
@@ -103,31 +101,17 @@ class RcnnNet(nn.Module):  # have to change numbers depending on data
     def __init__(self):
         super(RcnnNet, self).__init__()
 
-        self.conv1 = nn.Conv2d(4, 10, 3)
+        self.conv1 = nn.Conv2d(4, 10, 1)
         self.pool = nn.AdaptiveMaxPool2d(2, 2)
-        self.conv2 = nn.Conv2d(10, 16, 3)
-        self.conv3 = nn.Conv2d(16, 32, 3)
-        self.conv4 = nn.Conv2d(32, 64, 3)
+        self.conv2 = nn.Conv2d(10, 10, 1)
+        self.conv3 = nn.Conv2d(10, 10, 1)
+        self.conv4 = nn.Conv2d(10, 64, 1)
         self.pool = nn.AdaptiveMaxPool2d(2, 2)
 
-        self.fc_1 = nn.Linear(64 * 56 * 56, 120)
+        self.fc_1 = nn.Linear(64 * 216 * 576, 120)
         self.fc_2 = nn.Linear(120, 64)
         self.fc_3 = nn.Linear(64, 2)
         self.Sigmoid = nn.Sigmoid()
-        """
-        self.conv1 = nn.Conv2d(3, 8, 3)
-        self.pool = nn.AdaptiveMaxPool2d(2, 2)
-        self.conv2 = nn.Conv2d(8, 16, 3)
-
-        self.conv3 = nn.Conv2d(16, 32, 3)
-        self.conv4 = nn.Conv2d(32, 64, 3)
-        self.pool = nn.AdaptiveMaxPool2d(2, 2)
-
-        self.fc_1 = nn.Linear(64 * 56 * 56, 120)
-        self.fc_2 = nn.Linear(120, 64)
-        self.fc_3 = nn.Linear(64, 2)
-        self.Sigmoid = nn.Sigmoid()
-        """
 
 
     def forward(self, x):
@@ -144,20 +128,6 @@ class RcnnNet(nn.Module):  # have to change numbers depending on data
         x = F.relu(self.fc_1(x))
         x = F.relu(self.fc_2(x))
         x = F.sigmoid(self.fc_3(x))
-        """
-         x_pre_input = x
-        x = F.relu(self.conv2(x))
-        x = F.relu(self.conv3(x))
-        # residual connection
-        x = x + x_pre_input
-        x = F.relu(self.conv4(x))
-
-        # flattens tensor
-        x = x.view(x.size(0), -1)  # number of samples in batch
-        x = F.relu(self.fc_1(x))
-        x = F.relu(self.fc_2(x))
-        x = F.sigmoid(self.fc_3(x))
-        """
 
         return x
 
