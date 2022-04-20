@@ -49,8 +49,8 @@ def train():
             loss_in_epoch.append(loss.item())
         total_loss.append(mean(loss_in_epoch))
 
-        #accuracy = test(rcnn_0, test_set)
-        # print('For epoch', epoch + 1, 'the test accuracy over the whole test set is %f %%' % (accuracy))
+        accuracy = test(rcnn_0, test_set)
+        print('For epoch', epoch + 1, 'the test accuracy over the whole test set is %f %%' % (accuracy))
     print(total_loss)
     print('Finished Training')
 
@@ -59,7 +59,7 @@ def train():
 def test(net, test_set):
     correct_count = 0
     count = 0
-    x_test, y_test = next(iter(DataLoader(test_set, batch_size=10)))
+    x_test, y_test = next(iter(DataLoader(test_set, batch_size=300)))
     pred_test = net(x_test)
 
     for i in range(len(pred_test)):
@@ -68,7 +68,7 @@ def test(net, test_set):
         if pred_label.item() == true_label.item():
             correct_count += 1
         count += 1
-    return correct_count / count
+    return correct_count / count * 100
 
 
 """
@@ -102,32 +102,31 @@ class RcnnNet(nn.Module):  # have to change numbers depending on data
         super(RcnnNet, self).__init__()
 
         self.conv1 = nn.Conv2d(4, 10, 1)
-        self.pool = nn.AdaptiveMaxPool2d(2, 2)
+        self.pool = nn.AdaptiveMaxPool2d(2)
         self.conv2 = nn.Conv2d(10, 10, 1)
         self.conv3 = nn.Conv2d(10, 10, 1)
         self.conv4 = nn.Conv2d(10, 64, 1)
-        self.pool = nn.AdaptiveMaxPool2d(2, 2)
 
-        self.fc_1 = nn.Linear(64 * 216 * 576, 120)
+        self.fc_1 = nn.Linear(256, 120)
         self.fc_2 = nn.Linear(120, 64)
         self.fc_3 = nn.Linear(64, 10)
         self.Sigmoid = nn.Sigmoid()
 
 
     def forward(self, x):
-        x = F.relu(self.conv1(x))
+        x = torch.relu(self.pool(self.conv1(x)))
         x_pre_input = x
-        x = F.relu(self.conv2(x))
-        x = F.relu(self.conv3(x))
+        x = torch.relu(self.conv2(x))
+        x = torch.relu(self.conv3(x))
         # residual connection
         x = x + x_pre_input
-        x = F.relu(self.conv4(x))
+        x = torch.relu(self.pool(self.conv4(x)))
 
         # flattens tensor
         x = x.view(x.size(0), -1)  # number of samples in batch
-        x = F.relu(self.fc_1(x))    # TODO: slow
-        x = F.relu(self.fc_2(x))
-        x = F.sigmoid(self.fc_3(x))
+        x = torch.relu(self.fc_1(x))
+        x = torch.relu(self.fc_2(x))
+        x = torch.sigmoid(self.fc_3(x))
 
         return x
 
