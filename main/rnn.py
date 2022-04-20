@@ -32,11 +32,11 @@ class RNNet(nn.Module):
         self.drop_2 = nn.Dropout(0.3)
         self.fc_1 = nn.Linear(128, 32)
         self.fc_1_conv = nn.Linear(1776, 32)
-        self.fc_2 = nn.Linear(32, 12)
-        self.fc_3 = nn.Linear(12, 10)
+        self.fc_2 = nn.Linear(32, 16)
+        self.fc_3 = nn.Linear(16, 10)
 
-        self.conv_1 = nn.Conv1d(32, 8, 5)
-        self.conv_2 = nn.Conv1d(8, 8, 5)
+        self.conv_1 = nn.Conv1d(32, 16, 5)
+        self.conv_2 = nn.Conv1d(16, 8, 5)
 
     def forward(self, x):
         # ref: https://www.diva-portal.org/smash/get/diva2:1354738/FULLTEXT01.pdf
@@ -119,6 +119,6 @@ def model_test(test_set, net) -> float:
 
 
 if __name__ == '__main__':
-    acc = model_train(epochs=1000, learning_rate=.00005, batch_size=80, verbose=False, test_while_train=True)
+    acc = model_train(epochs=1000, learning_rate=.00003, batch_size=50, verbose=False, test_while_train=True)
     plt.plot(range(1, len(acc) + 1), acc)
     plt.show()
