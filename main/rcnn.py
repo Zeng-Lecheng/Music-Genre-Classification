@@ -16,7 +16,7 @@ torch.manual_seed(0)
 
 
 def train():
-    png_data = pickle.load(open('../png_data.pkl'))
+    png_data = pickle.load(open('../png_data.pkl', 'rb'))
     train_data = int(len(png_data)* .7)#/3
     print(train_data)
     test_data = len(png_data) - train_data
