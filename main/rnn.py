@@ -84,8 +84,9 @@ def model_train(epochs: int,
             batch_loss = criterion(pred_train, y_train)
             batch_loss.backward()
             optimizer.step()
-            epoch_loss += batch_loss.item() / len(x_train)
+            epoch_loss += batch_loss.item()
 
+        epoch_loss = epoch_loss / len(train_set)
         if test_while_train:
             test_acc = model_test(test_set, net)
             train_acc = model_test(train_set, net)
@@ -97,7 +98,7 @@ def model_train(epochs: int,
         elif verbose:
             print(f'Epoch: {epoch} Loss: {epoch_loss}')
 
-        writer.add_scalar('Loss/train', epoch_loss, epoch)
+        # writer.add_scalar('Loss/train', epoch_loss, epoch)
 
     return acc
 
