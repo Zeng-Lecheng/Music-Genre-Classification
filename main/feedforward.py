@@ -11,15 +11,15 @@ from dnn import DeepNeuralNet
 # from torch.utils.tensorboard import SummaryWriter
 # writer = SummaryWriter()
 
-device = 'cpu'
+device = 'cpu'  # in case nvidia GPU is available, change to 'cuda' might accelerate
 
 
 def model_train():
     dnn = DeepNeuralNet().to(device)
-    rcnn = RcnnNet()
-    rnn = RNNet()
+    rcnn = RcnnNet().to(device)
+    rnn = RNNet().to(device)
 
-    rcnn.load_state_dict(torch.load('../saved_models/rnn_with_cov_final.pkl'))
+    rcnn.load_state_dict(torch.load('../saved_models/rnn_with_cov_final.pt'))
 
 
 if __name__ == '__main__':
