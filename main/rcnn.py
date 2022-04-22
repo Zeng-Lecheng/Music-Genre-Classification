@@ -16,7 +16,7 @@ from statistics import mean
 torch.manual_seed(0)
 
 
-def train():
+def train(optimizer, net):
     png_data = pickle.load(open('png_data.pkl', 'rb'))
     train_data = int(len(png_data)* .8)#/3
 
@@ -24,25 +24,24 @@ def train():
 
     train_set, test_set = random_split(png_data, [int(train_data), int(test_data)])
 
-    dataloader = DataLoader(train_set, batch_size=30)
+    dataloader = DataLoader(train_set, batch_size=20)
     #print(train_set.shape())
     #"""
 
     cel = nn.BCELoss()
     total_loss = []
-    epoch_num = 30
-    rcnn_0 = RcnnNet().to('cpu')
-    #optimizer = optim.SGD(rcnn_0.parameters(), lr=0.0001)
-    optimizer = optim.Adam(rcnn_0.parameters(), lr=0.01)
+    epoch_num = 100
+    #model = net
+
     for epoch in range(0, epoch_num + 1):  # loop over the dataset multiple times
         loss_in_epoch = []
         for i, (images, labels) in enumerate(dataloader, 0):
             # get the inputs
-            images = Variable(images.to('cpu'))
-            labels = Variable(labels.to('cpu'))
+            images = Variable(images)
+            labels = Variable(labels)
             # zero the parameter gradients
             optimizer.zero_grad()
-            outputs = rcnn_0(images)
+            outputs = net(images)
             loss = cel(outputs, labels)
             # forward + backward + optimize
             loss.backward()
@@ -50,7 +49,7 @@ def train():
             loss_in_epoch.append(loss.item())
         total_loss.append(mean(loss_in_epoch))
 
-        accuracy = test(rcnn_0, test_set)
+        accuracy = test(net, test_set)
         print('For epoch', epoch + 1, 'the test accuracy over the whole test set is %f %%' % (accuracy))
     print(total_loss)
     print('Finished Training')
@@ -62,7 +61,7 @@ def test(net, test_set):
 
     correct_count = 0
     count = 0
-    x_test, y_test = next(iter(DataLoader(test_set, batch_size=300)))
+    x_test, y_test = next(iter(DataLoader(test_set, batch_size=20)))
     pred_test = net(x_test)
 
     for i in range(len(pred_test)):
@@ -109,12 +108,23 @@ class RcnnNet(nn.Module):  # have to change numbers depending on data
 
 
 if __name__ == '__main__':
-    result_1 = train()
-    plt.plot(result_1, 'g', label='Adam Optimizer (learning rate = .001)')
+    rcnn_0 = RcnnNet()#.to('Gpu')
+    #optimizer =
+    # optimizer = optim.Adam(rcnn_0.parameters(), lr=0.01)
+    result_1 = train(optim.SGD(rcnn_0.parameters(), lr=0.001, weight_decay=1), rcnn_0)
+    result_2 = train(optim.Adam(rcnn_0.parameters(), lr=0.001, weight_decay=1), rcnn_0)
+    result_3 = train(optim.Adagrad(rcnn_0.parameters(), lr=0.001, weight_decay=1), rcnn_0)
+    plt.plot(result_1, 'g', label='SGD')
+    plt.plot(result_2, 'b', label='Adam')
+    plt.plot(result_3, 'r', label='ADA')
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
     plt.legend()
     plt.show()
+
+
+
+
 
 
 
