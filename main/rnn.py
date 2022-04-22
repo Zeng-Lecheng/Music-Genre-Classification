@@ -72,6 +72,7 @@ def model_train(epochs: int,
 
     train_dataloader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
     net = RNNet().to(device)
+    net.load_state_dict(torch.load('../saved_models/rnn_with_cov_final.pkl'))
     optimizer = optim.Adam(net.parameters(), lr=learning_rate)
     criterion = nn.CrossEntropyLoss().to(device)
 
@@ -100,6 +101,7 @@ def model_train(epochs: int,
 
         # writer.add_scalar('Loss/train', epoch_loss, epoch)
 
+    torch.save(net.state_dict(), '../saved_models/rnn_with_cov_final.pkl')
     return acc
 
 
