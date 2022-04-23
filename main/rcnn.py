@@ -62,7 +62,7 @@ def train(optimizer, net, train_set, test_set):
 def test(net, test_set):
     net.eval()
     batch_size = 20
-    x_test, y_test = next(iter(DataLoader(test_set, batch_size=20)))
+    x_test, y_test = next(iter(DataLoader(test_set, batch_size=20, shuffle = True))))
     #pred_test = net(x_test)
     count = 0.0
     total = 0.0
@@ -107,7 +107,7 @@ class RcnnNet(nn.Module):  # have to change numbers depending on data
 
         self.fc_1 = nn.Linear(64, 120)
         self.fc_2 = nn.Linear(120, 64)
-        self.dropout = nn.dropout(.5)
+        self.dropout = nn.Dropout(.5)
         self.fc_3 = nn.Linear(64, 10)
         self.Sigmoid = nn.Sigmoid()
 
