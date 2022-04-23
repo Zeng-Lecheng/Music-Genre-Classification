@@ -98,14 +98,14 @@ class RcnnNet(nn.Module):  # have to change numbers depending on data
     def __init__(self):
         super(RcnnNet, self).__init__()
 
-        self.conv1 = nn.Conv2d(4, 10, 1)
+        self.conv1 = nn.Conv2d(4, 8, 3, 1)
         self.pool = nn.AdaptiveMaxPool2d(2)
-        self.conv2 = nn.Conv2d(10, 10, 1)
-        self.conv3 = nn.Conv2d(10, 10, 1)
-        self.conv4 = nn.Conv2d(10, 64, 1)
+        self.conv2 = nn.Conv2d(8, 8, 3, 1)
+        self.conv3 = nn.Conv2d(8, 8, 3, 1)
+        self.conv4 = nn.Conv2d(8, 16, 3, 1)
         #self.pool = nn.AdaptiveMaxPool2d(2, 2)
 
-        self.fc_1 = nn.Linear(256, 120)
+        self.fc_1 = nn.Linear(64, 120)
         self.fc_2 = nn.Linear(120, 64)
         self.dropout = nn.dropout(.5)
         self.fc_3 = nn.Linear(64, 10)
