@@ -32,11 +32,11 @@ class RNNet(nn.Module):
         self.drop_2 = nn.Dropout(0.3)
         self.fc_1 = nn.Linear(128, 32)
         self.fc_1_conv = nn.Linear(1776, 32)
-        self.fc_2 = nn.Linear(32, 12)
-        self.fc_3 = nn.Linear(12, 10)
+        self.fc_2 = nn.Linear(32, 16)
+        self.fc_3 = nn.Linear(16, 10)
 
-        self.conv_1 = nn.Conv1d(32, 8, 5)
-        self.conv_2 = nn.Conv1d(8, 8, 5)
+        self.conv_1 = nn.Conv1d(32, 16, 5)
+        self.conv_2 = nn.Conv1d(16, 8, 5)
 
     def forward(self, x):
         # ref: https://www.diva-portal.org/smash/get/diva2:1354738/FULLTEXT01.pdf
@@ -72,6 +72,7 @@ def model_train(epochs: int,
 
     train_dataloader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
     net = RNNet().to(device)
+    net.load_state_dict(torch.load('../saved_models/rnn_with_cov_final.pt'))
     optimizer = optim.Adam(net.parameters(), lr=learning_rate)
     criterion = nn.CrossEntropyLoss().to(device)
 
@@ -84,8 +85,9 @@ def model_train(epochs: int,
             batch_loss = criterion(pred_train, y_train)
             batch_loss.backward()
             optimizer.step()
-            epoch_loss += batch_loss.item() / len(x_train)
+            epoch_loss += batch_loss.item()
 
+        epoch_loss = epoch_loss / len(train_set)
         if test_while_train:
             test_acc = model_test(test_set, net)
             train_acc = model_test(train_set, net)
@@ -97,8 +99,9 @@ def model_train(epochs: int,
         elif verbose:
             print(f'Epoch: {epoch} Loss: {epoch_loss}')
 
-        writer.add_scalar('Loss/train', epoch_loss, epoch)
+        # writer.add_scalar('Loss/train', epoch_loss, epoch)
 
+    torch.save(net.state_dict(), '../saved_models/rnn_with_cov_final.pt')
     return acc
 
 
@@ -119,6 +122,6 @@ def model_test(test_set, net) -> float:
 
 
 if __name__ == '__main__':
-    acc = model_train(epochs=1000, learning_rate=.00005, batch_size=80, verbose=False, test_while_train=True)
+    acc = model_train(epochs=1000, learning_rate=.00003, batch_size=50, verbose=False, test_while_train=True)
     plt.plot(range(1, len(acc) + 1), acc)
     plt.show()
