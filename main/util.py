@@ -1,11 +1,10 @@
 import os
-from typing import List
-
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import torch
-import torchaudio       # requires: pip install PySoundFile to avoid RuntimeErr: No audio I/O backend is available. #https://stackoverflow.com/questions/62543843/cannot-import-torch-audio-no-audio-backend-is-available
+# requires: pip install PySoundFile to avoid RuntimeErr: No audio I/O backend is available.
+# https://stackoverflow.com/questions/62543843/cannot-import-torch-audio-no-audio-backend-is-available
+import torchaudio
 from torch.utils.data import Dataset
 from torchvision.io import read_image
 
@@ -19,6 +18,9 @@ def loadCSV(filepath: str) -> tuple[torch.Tensor, torch.Tensor, int]:
     """
     features_df = pd.read_csv(filepath)
     length = len(features_df.index)
+
+    # Remove broken jazz.00054.wav
+    features_df.drop(features_df[features_df['filename'] == 'jazz.00054.wav'].index, inplace=True)
 
     # First drop the file name, it is not needed.
     del features_df['filename']
@@ -125,7 +127,7 @@ class WavData(Dataset):
                 # Assume sample rates of all the files are the same
                 current_x, self.sample_rate = torchaudio.load(open(f'{path}/{genre}/{file}', 'rb'))
 
-                current_x = current_x[:, 5000:5900]     # too large, cut it short
+                current_x = current_x[:, 5000:5900]  # too large, cut it short
                 # Do zero padding if size does not match
                 if current_x.shape[1] > self.x.shape[1]:
                     pad_self_x = torch.zeros((self.x.shape[0], current_x.shape[1]))
@@ -141,7 +143,7 @@ class WavData(Dataset):
                 self.y = torch.concat((self.y, current_onehot))
 
         self.x = self.x[1:, :, None]
-        self.x = self.x / (self.x.max() - self.x.min())     # normalization
+        self.x = (self.x - self.x.min()) / (self.x.max() - self.x.min())  # normalization
         self.y = self.y[1:]
         self.device = device
 
@@ -175,7 +177,6 @@ class PngData(Dataset):
 
         shape = read_image(f'{path}/{cats[0]}/{os.listdir(f"{path}/{cats[0]}")[0]}')[None, :].shape
 
-
         self.x = torch.zeros(shape)
         self.y = torch.zeros((1, len(cats)))
         for genre in os.listdir(path):
@@ -194,3 +195,20 @@ class PngData(Dataset):
 
     def __len__(self):
         return self.x.shape[0]
+
+
+class MultiSourceData(Dataset):
+    def __init__(self, path: str, device: str = 'cpu'):
+        self.png = PngData(f'{path}/images_original', device=device)
+        self.wav = WavData(f'{path}/genres_original', device=device)
+        self.csv = loadCSV(f'{path}/features_30_sec.csv')
+
+    def __getitem__(self, item):
+        png, label = self.png[item]
+        wav = self.wav[item][0]
+        csv = self.csv[0][item]
+
+        return png, wav, csv, label
+
+    def __len__(self):
+        return len(self.png)
