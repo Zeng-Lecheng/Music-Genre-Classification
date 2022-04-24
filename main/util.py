@@ -1,10 +1,11 @@
 import os
 from typing import List
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import torch
-import torchaudio
+import torchaudio       # requires: pip install PySoundFile to avoid RuntimeErr: No audio I/O backend is available. #https://stackoverflow.com/questions/62543843/cannot-import-torch-audio-no-audio-backend-is-available
 from torch.utils.data import Dataset
 from torchvision.io import read_image
 
@@ -173,6 +174,7 @@ class PngData(Dataset):
         cats = sorted(os.listdir(path))
 
         shape = read_image(f'{path}/{cats[0]}/{os.listdir(f"{path}/{cats[0]}")[0]}')[None, :].shape
+
 
         self.x = torch.zeros(shape)
         self.y = torch.zeros((1, len(cats)))

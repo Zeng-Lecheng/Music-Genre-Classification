@@ -1,0 +1,42 @@
+READ ME ABOUT ====================
+eda.txt
+This section will discuss some of the included features in the 2 csv files along with new features.
+We intend to do some initial exploratory data analysis (eda) on the given features to better understand them. Possibly,
+    we may attempt to run attention or other mechanics that will help pinpoint what features best represent genre.
+New features is a section where we attempt to generate new data features from the given wav files. While some of that
+    information may be implicitly embedded into the wav data, illuminating them for addition in FFNNs may show if these
+    new features are strongly correlated to genre.
+
+OLD FEATURES======================
+1. What is a wav file??
+    Wav file encodes recorded audio. For us: music.
+    Sampling rate 44.1k, bit depth 2^16 = range[-32768, include32767]
+    At 44.1k or 48k times per second, (up to 2-4) mic/speaker envelope positions are recorded. The bit depth represents
+    a breakdown of how precisely the speaker position is different from a still/0 position.
+
+    The start of the file is 44 bytes of file format information. See source 5. For us: When we want to find the raw
+        volume, we will need to not include this section. For NN, it should learn that this starting 44bytes is useless.
+
+    After that, data chunks house speaker envelope position.
+
+    How does this encode volume?
+
+        Sources: https://en.wikipedia.org/wiki/WAV
+            https://en.wikipedia.org/wiki/Pulse-code_modulation
+            https://www.quora.com/How-does-a-WAV-file-work-I-would-like-to-know-how-the-data-in-a-WAV-file-is-transfered-into-making-0s-and-1s-which-makes-a-speaker-move-back-and-forth-with-frequency-and-amplitude?top_ans=218795069
+            video, wav format, https://www.youtube.com/watch?v=udbA7u1zYfc&ab_channel=LowLevelJavaScript
+            Source 5, wav file header is 44 bytes: https://docs.fileformat.com/audio/wav/#wav-file-header
+            https://stackoverflow.com/questions/13039846/what-do-the-bytes-in-a-wav-file-represent
+
+
+NEW FEATURES =====================
+Features: avg vol, avg differential of vol
+
+TODO: Be able to extract data from wav files.
+
+Plan: try to extract avg volume level.
+    Look up how Wav files are encoded.
+    extract wav data. Do summation?
+    Generate our own new_features.csv
+    Look up what Lecheng's wavdata() does.
+    Look up what Librosa does, and what its compatible with.

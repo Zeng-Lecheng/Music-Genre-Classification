@@ -1,0 +1,22 @@
+This file contains notes to self during the working on this project =============
+
+
+
+
+
+
+Error fixing :
+Torch audio seems to work ok on Jeremy's PC for 3.10 but not for others (Mac?)
+
+import torchaudio       # requires: Windows(>>>pip install PySoundFile) or Mac equiv to avoid RuntimeErr: No audio I/O backend is available. #https://stackoverflow.com/questions/62543843/cannot-import-torch-audio-no-audio-backend-is-available
+
+Create new venv, its called HW in my version.
+
+Create a pkl file to save the output from processing data from WavData() Lecheng wrote.
+
+Removed jazz54 from dataset completely. <- check if this causes size error later.
+    There should be others to remove as well. Corrupted. Check GZTAN original website for comments.
+
+Issues with
+
+Try to run with GPU.

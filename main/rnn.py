@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 from util import WavData
 
-device = 'cpu'
+device = 'cuda' #fixed : pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu113
 
 # from torch.utils.tensorboard import SummaryWriter
 
