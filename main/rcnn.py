@@ -55,7 +55,7 @@ def train(optimizer, net, train_set, test_set):
         print('For epoch', epoch + 1, 'the test accuracy over the whole test set is %f %%' % (accuracy))
     print(total_loss)
     print('Finished Training')
-    #torch.save(net.state_dict(), '../saved_models/rnn_with_cov_final.pt')
+    torch.save(net.state_dict(), '../saved_models/rcn.pt')
     return total_loss
 
 
@@ -101,17 +101,10 @@ class RcnnNet(nn.Module):  # have to change numbers depending on data
         super(RcnnNet, self).__init__()
 
         self.conv1 = nn.Conv2d(4, 8, 3, 1)
-        #print('1')
-        self.bn1 = nn.BatchNorm2d(8)
         self.pool = nn.MaxPool2d(2)
-        self.conv2 = nn.Conv2d(8, 8, 1, 1)
-       # print('2')
-        self.bn2 = nn.BatchNorm2d(8)
+        self.conv2 = nn.Conv2d(8, 8, 1, 1
         self.conv3 = nn.Conv2d(8, 8, 1, 1)
-       # print('3')
-        self.bn3 = nn.BatchNorm2d(8)
         self.conv4 = nn.Conv2d(8, 16, 3, 1)
-        #print('4')
         self.bn4 = nn.BatchNorm2d(16)
         #self.pool = nn.MaxPool2d(2, 2)
 
@@ -123,18 +116,18 @@ class RcnnNet(nn.Module):  # have to change numbers depending on data
 
     def forward(self, x):
         #print('x')
-        x = F.relu(self.pool(self.bn1(self.conv1(x))))
+        x = F.relu(self.pool(self.conv1(x)))
         #print('y')
         x_pre_input = x
        # print('z')
-        x = F.relu(self.bn2(self.conv2(x)))
+        x = F.relu(self.conv2(x))
         #print('a')
-        x = F.relu(self.bn3(self.conv3(x)))
+        x = F.relu(self.conv3(x))
         # residual connection
         #print('b')
         x = x + x_pre_input
         #print('c')
-        x = F.relu(self.pool(self.bn4(self.conv4(x))))
+        x = F.relu(self.pool(self.conv4(x)))
 
         # flattens tensor
         x = x.view(x.size(0), -1)  # number of samples in batch
