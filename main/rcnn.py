@@ -90,7 +90,6 @@ class RcnnNet(nn.Module):  # have to change numbers depending on data
         self.conv2 = nn.Conv2d(8, 8, 1, 1)
         self.conv3 = nn.Conv2d(8, 8, 1, 1)
         self.conv4 = nn.Conv2d(8, 16, 3, 1)
-        #self.pool = nn.MaxPool2d(2, 2)
 
         self.fc_1 = nn.Linear(118720, 120)
         self.fc_2 = nn.Linear(120, 64)
