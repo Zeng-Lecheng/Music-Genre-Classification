@@ -29,10 +29,10 @@ def train(optimizer, net, train_set, test_set):
     dataloader = DataLoader(train_set, batch_size=20, shuffle = True)
     #print(train_set.shape())
     #"""
-
-    cel = nn.BCELoss()
+    #net.load_state_dict(torch.load('../saved_models/rnn_with_cov_final.pt'))
+    cel = nn.CrossEntropyLoss()
     total_loss = []
-    epoch_num = 100
+    epoch_num = 50
     #model = net
 
     for epoch in range(0, epoch_num + 1):  # loop over the dataset multiple times
@@ -55,14 +55,16 @@ def train(optimizer, net, train_set, test_set):
         print('For epoch', epoch + 1, 'the test accuracy over the whole test set is %f %%' % (accuracy))
     print(total_loss)
     print('Finished Training')
+    #torch.save(net.state_dict(), '../saved_models/rnn_with_cov_final.pt')
     return total_loss
 
 
 
 def test(net, test_set):
     net.eval()
-    batch_size = 20
-    x_test, y_test = next(iter(DataLoader(test_set, batch_size=20, shuffle = True))))
+    batch_size = 200
+
+    x_test, y_test = next(iter(DataLoader(test_set, batch_size=batch_size, shuffle = True)))
     #pred_test = net(x_test)
     count = 0.0
     total = 0.0
@@ -99,26 +101,40 @@ class RcnnNet(nn.Module):  # have to change numbers depending on data
         super(RcnnNet, self).__init__()
 
         self.conv1 = nn.Conv2d(4, 8, 3, 1)
-        self.pool = nn.AdaptiveMaxPool2d(2)
-        self.conv2 = nn.Conv2d(8, 8, 3, 1)
-        self.conv3 = nn.Conv2d(8, 8, 3, 1)
+        #print('1')
+        self.bn1 = nn.BatchNorm2d(8)
+        self.pool = nn.MaxPool2d(2)
+        self.conv2 = nn.Conv2d(8, 8, 1, 1)
+       # print('2')
+        self.bn2 = nn.BatchNorm2d(8)
+        self.conv3 = nn.Conv2d(8, 8, 1, 1)
+       # print('3')
+        self.bn3 = nn.BatchNorm2d(8)
         self.conv4 = nn.Conv2d(8, 16, 3, 1)
-        #self.pool = nn.AdaptiveMaxPool2d(2, 2)
+        #print('4')
+        self.bn4 = nn.BatchNorm2d(16)
+        #self.pool = nn.MaxPool2d(2, 2)
 
-        self.fc_1 = nn.Linear(64, 120)
+        self.fc_1 = nn.Linear(118720, 120)
         self.fc_2 = nn.Linear(120, 64)
         self.dropout = nn.Dropout(.5)
         self.fc_3 = nn.Linear(64, 10)
         self.Sigmoid = nn.Sigmoid()
 
     def forward(self, x):
-        x = F.relu(self.pool(self.conv1(x)))
+        #print('x')
+        x = F.relu(self.pool(self.bn1(self.conv1(x))))
+        #print('y')
         x_pre_input = x
-        x = F.relu(self.conv2(x))
-        x = F.relu(self.conv3(x))
+       # print('z')
+        x = F.relu(self.bn2(self.conv2(x)))
+        #print('a')
+        x = F.relu(self.bn3(self.conv3(x)))
         # residual connection
+        #print('b')
         x = x + x_pre_input
-        x = F.relu(self.pool(self.conv4(x)))
+        #print('c')
+        x = F.relu(self.pool(self.bn4(self.conv4(x))))
 
         # flattens tensor
         x = x.view(x.size(0), -1)  # number of samples in batch
@@ -133,12 +149,12 @@ class RcnnNet(nn.Module):  # have to change numbers depending on data
 if __name__ == '__main__':
     rcnn_0 = RcnnNet()#.to('Gpu')
     train_set, test_set = data_loader()
-    result_1 = train(optim.SGD(rcnn_0.parameters(), lr=0.001, weight_decay=.01), rcnn_0, train_set, test_set)
-    result_2 = train(optim.Adam(rcnn_0.parameters(), lr=0.001, weight_decay=.01), rcnn_0, train_set, test_set)
-    result_3 = train(optim.Adagrad(rcnn_0.parameters(), lr=0.001, weight_decay=.01), rcnn_0, train_set, test_set)
+    result_1 = train(optim.Adam(rcnn_0.parameters(), lr=0.05), rcnn_0, train_set, test_set)
+    #result_2 = train(optim.Adam(rcnn_0.parameters(), lr=0.005, weight_decay = .01), rcnn_0, train_set, test_set)
+    #result_3 = train(optim.Adagrad(rcnn_0.parameters(), lr=0.005, weight_decay = .01), rcnn_0, train_set, test_set)
     plt.plot(result_1, 'g', label='SGD')
-    plt.plot(result_2, 'b', label='Adam')
-    plt.plot(result_3, 'r', label='ADA')
+    #plt.plot(result_2, 'b', label='Adam')
+    #plt.plot(result_3, 'r', label='ADA')
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
     plt.legend()
