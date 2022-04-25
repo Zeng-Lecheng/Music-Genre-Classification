@@ -56,13 +56,11 @@ def train(optimizer, net, train_set, test_set):
     return total_loss
 
 
-
 def test(net, test_set):
     net.eval()
-    batch_size = 200
-
+    batch_size = 20
     x_test, y_test = next(iter(DataLoader(test_set, batch_size=batch_size, shuffle = True)))
-    #pred_test = net(x_test)
+
     count = 0.0
     total = 0.0
 
@@ -92,7 +90,6 @@ class RcnnNet(nn.Module):  # have to change numbers depending on data
         self.conv2 = nn.Conv2d(8, 8, 1, 1)
         self.conv3 = nn.Conv2d(8, 8, 1, 1)
         self.conv4 = nn.Conv2d(8, 16, 3, 1)
-        #self.pool = nn.MaxPool2d(2, 2)
 
         self.fc_1 = nn.Linear(118720, 120)
         self.fc_2 = nn.Linear(120, 64)
@@ -122,7 +119,7 @@ class RcnnNet(nn.Module):  # have to change numbers depending on data
 if __name__ == '__main__':
     rcnn_0 = RcnnNet()#.to('Gpu')
     train_set, test_set = data_loader()
-    result = train(optim.Adam(rcnn_0.parameters(), lr=0.005), rcnn_0, train_set, test_set)
+    result = train(optim.Adam(rcnn_0.parameters(), lr=0.005, weight_decay= .01), rcnn_0, train_set, test_set)
     plt.plot(result, 'g', label='SGD')
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
