@@ -7,7 +7,9 @@ from tqdm import tqdm
 
 from util import WavData
 
-device = 'cpu'
+# fixed : pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu113
+# automatically use cuda if available
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 # from torch.utils.tensorboard import SummaryWriter
 
@@ -19,26 +21,42 @@ device = 'cpu'
 class RNNet(nn.Module):
     def __init__(self):
         super().__init__()
+        self.kernel_1 = 5
+
         self.lstm_1 = nn.LSTM(1, 128, 1, batch_first=True)
         self.lstm_2 = nn.LSTM(128, 32, 1, batch_first=True)
         self.lstm_3 = nn.LSTM(32, 32, 1, batch_first=True)
         self.rnn_1 = nn.RNN(1, 128, 1, batch_first=True)
+        self.rnn_2 = nn.RNN(128, 32, 1, batch_first=True)
+        self.rnn_3 = nn.RNN(32, 32, 1, batch_first=True)
+        self.rnn_4 = nn.RNN(32, 32, 1, batch_first=True)
         self.drop_1 = nn.Dropout(0.5)
         self.drop_2 = nn.Dropout(0.3)
         self.fc_1 = nn.Linear(128, 32)
-        self.fc_2 = nn.Linear(32, 12)
-        self.fc_3 = nn.Linear(12, 10)
+        self.fc_1_conv = nn.Linear(1776, 32)
+        self.fc_2 = nn.Linear(32, 16)
+        self.fc_3 = nn.Linear(16, 10)
+
+        self.conv_1 = nn.Conv1d(32, 16, 5)
+        self.conv_2 = nn.Conv1d(16, 8, 5)
 
     def forward(self, x):
         # ref: https://www.diva-portal.org/smash/get/diva2:1354738/FULLTEXT01.pdf
-        lstm_out, hc = self.rnn_1(x)
-        # lstm_out, hc = self.lstm_2(self.drop_1(lstm_out))
-        # lstm_out, hc = self.lstm_3(self.drop_2(lstm_out))
+        x, hc = self.rnn_1(x)
+        x, hc = self.rnn_2(x)
+        x, hc = self.rnn_3(x)
+        # x, hc = self.rnn_4(x)
+        # out, hc = self.lstm_2(self.drop_1(out))
+        # out, hc = self.lstm_3(self.drop_2(out))
         # h_0 = torch.relu(hc[0][0])
+        # hidden_state = hc[0]
 
-        ave_out = torch.sum(lstm_out, dim=1) / lstm_out.shape[1]
-        # x = torch.relu(self.fc_1(h_0))
-        x = torch.relu(self.fc_1(ave_out))
+        ave_out = torch.sum(x, dim=1) / x.shape[1]
+        x = torch.swapaxes(x, 1, 2)
+        x = torch.relu(torch.max_pool1d(self.conv_1(x), 2))
+        x = torch.relu(torch.max_pool1d(self.conv_2(x), 2))
+        x = torch.flatten(x, 1)
+        x = torch.relu(self.fc_1_conv(x))
         x = torch.relu(self.fc_2(x))
         x = torch.sigmoid(self.fc_3(x))
         return x
@@ -56,6 +74,7 @@ def model_train(epochs: int,
 
     train_dataloader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
     net = RNNet().to(device)
+    net.load_state_dict(torch.load('../saved_models/rnn_with_cov_final.pt'))
     optimizer = optim.Adam(net.parameters(), lr=learning_rate)
     criterion = nn.CrossEntropyLoss().to(device)
 
@@ -68,19 +87,23 @@ def model_train(epochs: int,
             batch_loss = criterion(pred_train, y_train)
             batch_loss.backward()
             optimizer.step()
-            epoch_loss += batch_loss.item() / len(x_train)
+            epoch_loss += batch_loss.item()
 
+        epoch_loss = epoch_loss / len(train_set)
         if test_while_train:
-            epoch_acc = model_test(train_set, net)
-            acc.append(epoch_acc)
-            writer.add_scalar('Accuracy/test', epoch_acc, epoch)
+            test_acc = model_test(test_set, net)
+            train_acc = model_test(train_set, net)
+            acc.append(test_acc)
+            # writer.add_scalar('Accuracy/test', test_acc, epoch)
+            # writer.add_scalar('Accuracy/train', train_acc, epoch)
             if verbose:
-                print(f'Epoch: {epoch} Loss: {epoch_loss} Accuracy: {epoch_acc}')
+                print(f'Epoch: {epoch} Loss: {epoch_loss} Accuracy: {test_acc}')
         elif verbose:
             print(f'Epoch: {epoch} Loss: {epoch_loss}')
 
-        writer.add_scalar('Loss/train', epoch_loss, epoch)
+        # writer.add_scalar('Loss/train', epoch_loss, epoch)
 
+    torch.save(net.state_dict(), '../saved_models/rnn_with_cov_final.pt')
     return acc
 
 
@@ -101,6 +124,6 @@ def model_test(test_set, net) -> float:
 
 
 if __name__ == '__main__':
-    acc = model_train(epochs=5000, learning_rate=.0005, batch_size=50, verbose=False, test_while_train=True)
+    acc = model_train(epochs=1000, learning_rate=.00003, batch_size=50, verbose=False, test_while_train=True)
     plt.plot(range(1, len(acc) + 1), acc)
     plt.show()

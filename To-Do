@@ -1,16 +1,61 @@
-To-Do:
+To-Do ===========
 
     Exploratory Data Analysis:
         * Make our own spectrograms from wav files
         * Plot features
+        * Understand the features - Jeremy
+        * Try to add more features - Jeremy
+        * creating new test or train set of wav files - Jeremy
+            - Look on online sources , - Careful with super res mp3->wav.
+            - Why?
+                - Can we make multi-mix-genre output?
+                - For our own fun of categorizing our choice of songs? Test set?
+                - Add new genres?
 
     Neural Nets:
-        * Create feed-forward neural network
-        * Create convolutional neural network with residual connection
-        * Create recurrent neural network
+        * Create feed-forward neural network - Almost done - Lecheng Elizabeth
+        * Create convolutional neural network with residual connection - Emily/Jeremy
+        * Create recurrent neural network - Lecheng
         * Create Seq2Seq with attention
+            # we should pick one first
+            * ask teacher or research on how to use attention
+            * consider generation
+        * figure out combining the nets - Emily
+        * (Kmeans Clustering) - Cluster genres or songs , on the original audio - Jeremy
+            - This finds if genres are closer to each other.
+            - Or if songs are closer to each
+             - (Would this be a graph node clustering problem?)
 
     Tuning Hyperparameters:
         * Learning rate
         * Batch size
         * Initialized weights
+
+Schedule ===============
+While working together, we can use JetBrains Client aka Pycharm Collaborative. It is hosted by Elizabeth.
+While working separately, we work on our own IDE or Pycharm.
+Create a fork for yourself. Update Project if needed.
+Save changes to your fork. Create a merge/pull request.
+If Lecheng has time, he will accept them. 
+
+If not, we plan to discuss the merges in meeting. The meetings are:
+Th 2-2:30 during our normal Th 2-3:30 meeting time.
+(M 2-2:30) if we need to do bi-weekly updates.
+
+    Meet: April 14 Th 12-3:30pm : Gzang Grad Lounge open area. Have done: Current small agenda: EDA, 3 models.
+    Meet: April 21 Th 12-3:30pm : Gzang Grad Lounge open area.
+    Meet: April 23 Sat 6pm Jeremy's House: 15 Dartmouth St., Waltham
+    Due: April 27 or may 2 Monday
+        Ask teacher to clarify, then followup and ask to go May2
+
+
+RESOURCES =============
+Links ================
+JetBrains Client: https://code-with-me.global.jetbrains.com/gJ_D9X1YtPprbGfoJaU6Sg#p=PY&fp=9764ED89E4C4584A6B0A41D5FD79394FA2D5F1033121338E118B12089317F925
+github repo : https://github.com/Zeng-Lecheng/Music-Genre-Classification
+
+Meetings====================
+PRIMARY(Eliz):
+<TBA>
+SECONDARY(jer):
+https://zoom.us/j/98243049696?pwd=Y2Z5UFFlKzdwNDBrM0JaUDRTVGk4QT09 PW: dl
