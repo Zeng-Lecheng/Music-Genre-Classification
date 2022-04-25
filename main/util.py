@@ -17,10 +17,12 @@ def loadCSV(filepath: str) -> tuple[torch.Tensor, torch.Tensor, int]:
     :rtype: tuple[torch.Tensor, torch.Tensor, int]
     """
     features_df = pd.read_csv(filepath)
-    length = len(features_df.index)
 
     # Remove broken jazz.00054.wav
     features_df.drop(features_df[features_df['filename'] == 'jazz.00054.wav'].index, inplace=True)
+    
+    # Get the number of items in the features
+    length = len(features_df.index)
 
     # First drop the file name, it is not needed.
     del features_df['filename']
