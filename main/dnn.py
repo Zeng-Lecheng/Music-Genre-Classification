@@ -13,6 +13,7 @@ import util
 
 torch.manual_seed(0)
 
+
 def hyperparameter_test():
     """This function tests out different learning rates and batch sizes and plots them over epochs.
     It becomes clear that LR=0.001 and batch size=10 produces the most consistently best results,
@@ -70,7 +71,7 @@ def model(trainDataset, testDataset, learning_rate: float, batch_num: int, epoch
                 acc.append(model_test(testDataset, net))
                 total_loss.append(mean(loss_in_epoch))
             progressbar.update(1)
-    torch.save(net.state_dict(), '../saved_models/dnn.pt')
+    #torch.save(net.state_dict(), '../saved_models/dnn.pt')
     return acc, total_loss
 
 
@@ -109,6 +110,7 @@ class DeepNeuralNet(nn.Module):
         x = F.relu(self.ffLayer1(x))
         x = torch.sigmoid(self.ffLayer2(x))
         return x
+
 
 if __name__ == '__main__':
     trainDataset, testDataset = read_data()
