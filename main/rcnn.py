@@ -27,13 +27,10 @@ def data_loader():
 def train(optimizer, net, train_set, test_set):
     net.train()
     dataloader = DataLoader(train_set, batch_size=20, shuffle = True)
-    #print(train_set.shape())
-    #"""
     #net.load_state_dict(torch.load('../saved_models/rnn_with_cov_final.pt'))
     cel = nn.CrossEntropyLoss()
     total_loss = []
-    epoch_num = 50
-    #model = net
+    epoch_num = 1#50
 
     for epoch in range(0, epoch_num + 1):  # loop over the dataset multiple times
         loss_in_epoch = []
@@ -86,26 +83,15 @@ def test(net, test_set):
     accuracy = (100 * count / total)
     return accuracy
 
-    """
-    for i in range(len(pred_test)):
-        pred_label = torch.argmax(pred_test[i])
-        true_label = torch.argmax(y_test[i])
-        if pred_label.item() == true_label.item():
-            correct_count += 1
-        count += 1
-    return correct_count / count
-"""
-
 class RcnnNet(nn.Module):  # have to change numbers depending on data
     def __init__(self):
         super(RcnnNet, self).__init__()
 
         self.conv1 = nn.Conv2d(4, 8, 3, 1)
         self.pool = nn.MaxPool2d(2)
-        self.conv2 = nn.Conv2d(8, 8, 1, 1
+        self.conv2 = nn.Conv2d(8, 8, 1, 1)
         self.conv3 = nn.Conv2d(8, 8, 1, 1)
         self.conv4 = nn.Conv2d(8, 16, 3, 1)
-        self.bn4 = nn.BatchNorm2d(16)
         #self.pool = nn.MaxPool2d(2, 2)
 
         self.fc_1 = nn.Linear(118720, 120)
@@ -115,18 +101,12 @@ class RcnnNet(nn.Module):  # have to change numbers depending on data
         self.Sigmoid = nn.Sigmoid()
 
     def forward(self, x):
-        #print('x')
         x = F.relu(self.pool(self.conv1(x)))
-        #print('y')
         x_pre_input = x
-       # print('z')
         x = F.relu(self.conv2(x))
-        #print('a')
         x = F.relu(self.conv3(x))
         # residual connection
-        #print('b')
         x = x + x_pre_input
-        #print('c')
         x = F.relu(self.pool(self.conv4(x)))
 
         # flattens tensor
@@ -142,12 +122,8 @@ class RcnnNet(nn.Module):  # have to change numbers depending on data
 if __name__ == '__main__':
     rcnn_0 = RcnnNet()#.to('Gpu')
     train_set, test_set = data_loader()
-    result_1 = train(optim.Adam(rcnn_0.parameters(), lr=0.05), rcnn_0, train_set, test_set)
-    #result_2 = train(optim.Adam(rcnn_0.parameters(), lr=0.005, weight_decay = .01), rcnn_0, train_set, test_set)
-    #result_3 = train(optim.Adagrad(rcnn_0.parameters(), lr=0.005, weight_decay = .01), rcnn_0, train_set, test_set)
-    plt.plot(result_1, 'g', label='SGD')
-    #plt.plot(result_2, 'b', label='Adam')
-    #plt.plot(result_3, 'r', label='ADA')
+    result = train(optim.Adam(rcnn_0.parameters(), lr=0.005), rcnn_0, train_set, test_set)
+    plt.plot(result, 'g', label='SGD')
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
     plt.legend()
