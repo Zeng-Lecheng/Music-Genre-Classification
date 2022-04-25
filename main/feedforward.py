@@ -16,10 +16,12 @@ device = 'cpu'  # in case nvidia GPU is available, change to 'cuda' might accele
 
 def model_train():
     dnn = DeepNeuralNet().to(device)
-    rcnn = RcnnNet().to(device)
+    cnn = RcnnNet().to(device)
     rnn = RNNet().to(device)
 
-    rcnn.load_state_dict(torch.load('../saved_models/rnn_with_cov_final.pt'))
+    dnn.load_state_dict(torch.load('../saved_models/dnn.pt'))
+    cnn.load_state_dict(torch.load('../saved_models/rcn.pt'))
+    rnn.load_state_dict(torch.load('../saved_models/rnn_with_cov_final.pt'))
 
 
 if __name__ == '__main__':
