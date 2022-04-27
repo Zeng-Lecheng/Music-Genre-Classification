@@ -1,20 +1,22 @@
 import torch
 import torch.nn as nn
-from matplotlib import pyplot as plt
 from torch.utils.data import DataLoader, random_split
 import torch.optim as optim
 from tqdm import tqdm
+from matplotlib import pyplot as plt
 
 from util import WavData
-
-# fixed : pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu113
-# automatically use cuda if available
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 # from torch.utils.tensorboard import SummaryWriter
 
 # writer = SummaryWriter()
 
+# fixed : pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu113
+# use cpu by default, change to cuda if you want
+# we only debug and ensure everything works well on cpu
+device = 'cpu'
+
+# uncomment to run with limited cores
 # torch.set_num_threads(1)
 
 
@@ -103,7 +105,7 @@ def model_train(epochs: int,
 
         # writer.add_scalar('Loss/train', epoch_loss, epoch)
 
-    #torch.save(net.state_dict(), '../saved_models/rnn_with_cov_final.pt')
+    # torch.save(net.state_dict(), '../saved_models/rnn_with_cov_final.pt')
     return acc
 
 
