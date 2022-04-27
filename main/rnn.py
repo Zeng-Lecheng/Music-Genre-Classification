@@ -12,7 +12,7 @@ from util import WavData
 # writer = SummaryWriter()
 
 # fixed : pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu113
-# use cpu by default, change to cuda if you want
+# use cpu by default, change to cuda if you want and change it back before committing
 # we only debug and ensure everything works well on cpu
 device = 'cpu'
 

@@ -3,7 +3,6 @@ import pickle
 import numpy as np
 
 # import scipy
-#import rcnn_utils as U
 import torch
 from torch.utils.data import DataLoader, random_split
 import matplotlib.pyplot as plt
@@ -13,10 +12,18 @@ from torch.autograd import Variable
 import torch.optim as optim
 import torch.nn.functional as F
 from statistics import mean
+
 torch.manual_seed(0)
+
+# fixed : pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu113
+# use cpu by default, change to cuda if you want and change it back before committing
+# we only debug and ensure everything works well on cpu
+device = 'cpu'
+
 
 def data_loader():
     png_data = pickle.load(open('../data/png_data.pkl', 'rb'))
+    png_data.device = device
     train_data = int(len(png_data) * .8)  # /3
 
     test_data = len(png_data) - train_data
@@ -24,13 +31,14 @@ def data_loader():
     train_set, test_set = random_split(png_data, [int(train_data), int(test_data)])
     return train_set, test_set
 
+
 def train(optimizer, net, train_set, test_set):
     net.train()
-    dataloader = DataLoader(train_set, batch_size=20, shuffle = True)
-    #net.load_state_dict(torch.load('../saved_models/rnn_with_cov_final.pt'))
-    cel = nn.CrossEntropyLoss()
+    dataloader = DataLoader(train_set, batch_size=20, shuffle=True)
+    # net.load_state_dict(torch.load('../saved_models/rnn_with_cov_final.pt'))
+    cel = nn.CrossEntropyLoss().to(device)
     total_loss = []
-    epoch_num = 1#50
+    epoch_num = 1  # 50
 
     for epoch in range(0, epoch_num + 1):  # loop over the dataset multiple times
         loss_in_epoch = []
@@ -59,7 +67,7 @@ def train(optimizer, net, train_set, test_set):
 def test(net, test_set):
     net.eval()
     batch_size = 20
-    x_test, y_test = next(iter(DataLoader(test_set, batch_size=batch_size, shuffle = True)))
+    x_test, y_test = next(iter(DataLoader(test_set, batch_size=batch_size, shuffle=True)))
 
     count = 0.0
     total = 0.0
@@ -80,6 +88,7 @@ def test(net, test_set):
                     # compute the accuracy over all test images
     accuracy = (100 * count / total)
     return accuracy
+
 
 class RcnnNet(nn.Module):  # have to change numbers depending on data
     def __init__(self):
@@ -117,21 +126,11 @@ class RcnnNet(nn.Module):  # have to change numbers depending on data
 
 
 if __name__ == '__main__':
-    rcnn_0 = RcnnNet()#.to('Gpu')
+    rcnn_0 = RcnnNet().to(device)
     train_set, test_set = data_loader()
-    result = train(optim.Adam(rcnn_0.parameters(), lr=0.005, weight_decay= .01), rcnn_0, train_set, test_set)
+    result = train(optim.Adam(rcnn_0.parameters(), lr=0.005, weight_decay=.01), rcnn_0, train_set, test_set)
     plt.plot(result, 'g', label='SGD')
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
     plt.legend()
     plt.show()
-
-
-
-
-
-
-
-
-
-
