@@ -15,7 +15,7 @@ from util import WavData
 # from torch.utils.tensorboard import SummaryWriter
 # writer = SummaryWriter()
 
-device = 'cpu'  # in case nvidia GPU is available, change to 'cuda' might accelerate
+device = 'cuda' if torch.cuda.is_available() else 'cpu'  # in case nvidia GPU is available, change to 'cuda' might accelerate
 
 
 
