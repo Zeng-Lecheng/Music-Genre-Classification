@@ -103,7 +103,7 @@ def model_train(epochs: int,
 
         # writer.add_scalar('Loss/train', epoch_loss, epoch)
 
-    torch.save(net.state_dict(), '../saved_models/rnn_with_cov_final.pt')
+    #torch.save(net.state_dict(), '../saved_models/rnn_with_cov_final.pt')
     return acc
 
 

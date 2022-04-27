@@ -7,7 +7,7 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader, random_split
 import matplotlib.pyplot as plt
-from main.util import PngData
+from util import PngData
 import torch.nn as nn
 from torch.autograd import Variable
 import torch.optim as optim
@@ -16,7 +16,7 @@ from statistics import mean
 torch.manual_seed(0)
 
 def data_loader():
-    png_data = pickle.load(open('png_data.pkl', 'rb'))
+    png_data = pickle.load(open('../data/png_data.pkl', 'rb'))
     train_data = int(len(png_data) * .8)  # /3
 
     test_data = len(png_data) - train_data
