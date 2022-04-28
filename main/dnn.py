@@ -14,12 +14,10 @@ import util
 torch.manual_seed(0)
 
 
-def hyperparameter_test():
+def hyperparameter_test(trainDataset, testDataset):
     """This function tests out different learning rates and batch sizes and plots them over epochs.
     It becomes clear that LR=0.001 and batch size=10 produces the most consistently best results,
     but is that due to the seed we are currently using? What if I plotted multiple different seeds?"""
-    trainDataset, testDataset = read_data()
-
     lr_list = [0.0005, 0.001, 0.005, 0.01]
     b_list = [5, 10, 50, 100, 500, 1000]
 

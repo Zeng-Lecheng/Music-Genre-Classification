@@ -11,10 +11,10 @@ import matplotlib.pyplot as plt
 import pickle as pkl
 
 import util
+from main import dnn, rcnn, rnn
 from rnn import RNNet
 from rcnn import RcnnNet
 from dnn import DeepNeuralNet
-from util import WavData
 
 # from torch.utils.tensorboard import SummaryWriter
 # writer = SummaryWriter()
@@ -136,7 +136,26 @@ def model_test(testDataset, net):
     return acc_test
 
 
-# DNN model
+def hyperparameter_test(trainDataset, testDataset):
+    """This function tests out different learning rates and batch sizes and plots them over epochs.
+    It becomes clear that LR=0.001 and batch size=10 produces the most consistently best results,
+    but is that due to the seed we are currently using? What if I plotted multiple different seeds?"""
+    lr_list = [0.0005, 0.001, 0.005, 0.01]
+    b_list = [5, 10, 50, 100, 500, 1000]
+
+    for lr in lr_list:
+        fig, ax = plt.subplots()
+        for b in b_list:
+            acc, loss = model(trainDataset, testDataset, lr, b, 5000, True)
+            ax.plot(acc, label=str(f'Batches={b}, LR={lr}'))
+        ax.set_title("Percent Accuracy over Epochs")
+        ax.legend()
+        plt.xlabel("Epoch")
+        plt.ylabel("Percent Accuracy")
+        plt.show()
+
+
+# FF model
 class FeedForwardNeuralNet(nn.Module):
     def __init__(self):
         super(FeedForwardNeuralNet, self).__init__()
@@ -156,12 +175,14 @@ class FeedForwardNeuralNet(nn.Module):
 
 if __name__ == '__main__':
     trainDataset, testDataset = get_data()
-    acc, total_loss = model(trainDataset, testDataset, 0.001, 10, 2125, True)
-    fig, axs = plt.subplots(2, sharex='col')
-    fig.suptitle('Vertically stacked subplots')
-    fig.suptitle('Percent Accuracy and Loss over Epochs')
-    axs[0].plot(acc)
-    axs[0].set(ylabel='Percent Correct')
-    axs[1].plot(total_loss)
-    axs[1].set(xlabel='Epoch', ylabel='CrossEntropyLoss')
-    plt.show()
+    hyperparameter_test(trainDataset, testDataset)
+
+    # acc, total_loss = model(trainDataset, testDataset, 0.001, 10, 2125, True)
+    # fig, axs = plt.subplots(2, sharex='col')
+    # fig.suptitle('Vertically stacked subplots')
+    # fig.suptitle('Percent Accuracy and Loss over Epochs')
+    # axs[0].plot(acc)
+    # axs[0].set(ylabel='Percent Correct')
+    # axs[1].plot(total_loss)
+    # axs[1].set(xlabel='Epoch', ylabel='CrossEntropyLoss')
+    # plt.show()
