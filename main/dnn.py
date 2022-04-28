@@ -49,28 +49,25 @@ def read_data():
 
 def model(trainDataset, testDataset, learning_rate: float, batch_num: int, epoch_num: int, verbose: bool):
     loader = DataLoader(trainDataset, batch_size=batch_num)
-    epochs = epoch_num
     net = DeepNeuralNet()
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=learning_rate)
     acc = []
     total_loss = []
-    with tqdm(total=epoch_num) as progressbar:
-        for epoch in range(0, epochs):  # loop over the dataset multiple times
-            loss_in_epoch = []
-            for i, data in enumerate(loader):
-                inputs, labels = data
-                optimizer.zero_grad()
-                outputs = net(inputs)
-                loss = criterion(outputs, labels)
-                loss.backward()
-                optimizer.step()
-                if verbose:
-                    loss_in_epoch.append(loss.item())
+    for epoch in tqdm(range(0, epoch_num)):  # loop over the dataset multiple times
+        loss_in_epoch = []
+        for i, data in enumerate(loader):
+            inputs, labels = data
+            optimizer.zero_grad()
+            outputs = net(inputs)
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
             if verbose:
-                acc.append(model_test(testDataset, net))
-                total_loss.append(mean(loss_in_epoch))
-            progressbar.update(1)
+                loss_in_epoch.append(loss.item())
+        if verbose:
+            acc.append(model_test(testDataset, net))
+            total_loss.append(mean(loss_in_epoch))
     #torch.save(net.state_dict(), '../saved_models/dnn.pt')
     return acc, total_loss
 
