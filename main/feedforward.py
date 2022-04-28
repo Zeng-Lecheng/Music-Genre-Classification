@@ -11,7 +11,6 @@ import matplotlib.pyplot as plt
 import pickle as pkl
 
 import util
-from main import dnn, rcnn, rnn
 from rnn import RNNet
 from rcnn import RcnnNet
 from dnn import DeepNeuralNet
