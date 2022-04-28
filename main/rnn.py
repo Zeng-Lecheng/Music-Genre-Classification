@@ -23,7 +23,6 @@ device = 'cpu'
 class RNNet(nn.Module):
     def __init__(self):
         super().__init__()
-        self.kernel_1 = 5
 
         self.lstm_1 = nn.LSTM(1, 128, 1, batch_first=True)
         self.lstm_2 = nn.LSTM(128, 32, 1, batch_first=True)
