@@ -7,6 +7,7 @@ import torch
 import torchaudio
 from torch.utils.data import Dataset
 from torchvision.io import read_image
+from torchaudio.transforms import Resample
 
 torch.set_default_dtype(torch.float32)
 
@@ -123,13 +124,16 @@ class WavData(Dataset):
 
         self.x = torch.zeros((1, 1))
         self.y = torch.zeros((1, len(cats)))
+
         for genre in os.listdir(path):
             current_onehot = torch_onehot(cats, genre)
             for file in os.listdir(f'{path}/{genre}'):
                 # Assume sample rates of all the files are the same
                 current_x, self.sample_rate = torchaudio.load(open(f'{path}/{genre}/{file}', 'rb'))
 
-                current_x = current_x[:, 5000:5900]  # too large, cut it short
+                resampler = Resample(self.sample_rate, self.sample_rate / 10)
+                current_x = resampler(current_x)
+                current_x = current_x[:, 0:2205]  # 1 second audio
                 # Do zero padding if size does not match
                 if current_x.shape[1] > self.x.shape[1]:
                     pad_self_x = torch.zeros((self.x.shape[0], current_x.shape[1]))
