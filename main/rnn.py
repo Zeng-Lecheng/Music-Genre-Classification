@@ -136,7 +136,7 @@ def hyperparameter_test():
     train_set, test_set = get_data()
     learning_rate_list = [0.001, 0.0005, 0.0003, 0.0001, 0.00005]
     batch_size_list = [50, 100, 200]
-    epochs = 3
+    epochs = 1000
     for b in batch_size_list:
         for lr in learning_rate_list:
             acc = model_train(train_set, test_set, epochs=epochs, learning_rate=lr, batch_size=b, verbose=False,
