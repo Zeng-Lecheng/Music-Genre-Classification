@@ -1,19 +1,29 @@
 import pickle
 
+import numpy as np
+
+# import scipy
 import torch
 from torch.utils.data import DataLoader, random_split
 import matplotlib.pyplot as plt
-from main.util import PngData
+from util import PngData
 import torch.nn as nn
 from torch.autograd import Variable
 import torch.optim as optim
 import torch.nn.functional as F
 from statistics import mean
-from tqdm import tqdm
+
 torch.manual_seed(0)
 
+# fixed : pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu113
+# use cpu by default, change to cuda if you want and change it back before committing
+# we only debug and ensure everything works well on cpu
+device = 'cpu'
+
+
 def data_loader():
-    png_data = pickle.load(open('png_data.pkl', 'rb'))
+    png_data = pickle.load(open('../data/png_data.pkl', 'rb'))
+    png_data.device = device
     train_data = int(len(png_data) * .8)  # /3
 
     test_data = len(png_data) - train_data
@@ -21,15 +31,16 @@ def data_loader():
     train_set, test_set = random_split(png_data, [int(train_data), int(test_data)])
     return train_set, test_set
 
+
 def train(optimizer, net, train_set, test_set):
     net.train()
-    dataloader = DataLoader(train_set, batch_size=20, shuffle = True)
-    #net.load_state_dict(torch.load('../saved_models/rnn_with_cov_final.pt'))
-    cel = nn.CrossEntropyLoss()
+    dataloader = DataLoader(train_set, batch_size=20, shuffle=True)
+    # net.load_state_dict(torch.load('../saved_models/rnn_with_cov_final.pt'))
+    cel = nn.CrossEntropyLoss().to(device)
     total_loss = []
-    epoch_num = 50
+    epoch_num = 1  # 50
 
-    for epoch in tqdm(range(0, epoch_num + 1)):  # loop over the dataset multiple times
+    for epoch in range(0, epoch_num + 1):  # loop over the dataset multiple times
         loss_in_epoch = []
         for i, (images, labels) in enumerate(dataloader, 0):
             # get the inputs
@@ -45,20 +56,18 @@ def train(optimizer, net, train_set, test_set):
             loss_in_epoch.append(loss.item())
         total_loss.append(mean(loss_in_epoch))
 
-        # accuracy = test(net, test_set)
-        # print('For epoch', epoch + 1, 'the test accuracy over the whole test set is %f %%' % (accuracy))
+        accuracy = test(net, test_set)
+        print('For epoch', epoch + 1, 'the test accuracy over the whole test set is %f %%' % (accuracy))
     print(total_loss)
     print('Finished Training')
-    torch.save(net.state_dict(), '../saved_models/rcn_temp_v1.pt')
-    accuracy = test(net, test_set)
-    print(f'Training finished. Accuracy on testing set: {accuracy}')
+    torch.save(net.state_dict(), '../saved_models/rcn.pt')
     return total_loss
 
 
 def test(net, test_set):
     net.eval()
     batch_size = 20
-    x_test, y_test = next(iter(DataLoader(test_set, batch_size=batch_size, shuffle = True)))
+    x_test, y_test = next(iter(DataLoader(test_set, batch_size=batch_size, shuffle=True)))
 
     count = 0.0
     total = 0.0
@@ -80,6 +89,7 @@ def test(net, test_set):
     accuracy = (100 * count / total)
     return accuracy
 
+
 class RcnnNet(nn.Module):  # have to change numbers depending on data
     def __init__(self):
         super(RcnnNet, self).__init__()
@@ -89,11 +99,8 @@ class RcnnNet(nn.Module):  # have to change numbers depending on data
         self.conv2 = nn.Conv2d(8, 8, 1, 1)
         self.conv3 = nn.Conv2d(8, 8, 1, 1)
         self.conv4 = nn.Conv2d(8, 16, 3, 1)
-        self.conv5 = nn.Conv2d(16, 24, 3, 1)
-        self.conv6 = nn.Conv2d(24, 32, 3, 1)
-        self.conv7 = nn.Conv2d(32, 48, 3, 1)
 
-        self.fc_1 = nn.Linear(3696, 120)
+        self.fc_1 = nn.Linear(118720, 120)
         self.fc_2 = nn.Linear(120, 64)
         self.dropout = nn.Dropout(.5)
         self.fc_3 = nn.Linear(64, 10)
@@ -107,9 +114,6 @@ class RcnnNet(nn.Module):  # have to change numbers depending on data
         # residual connection
         x = x + x_pre_input
         x = F.relu(self.pool(self.conv4(x)))
-        x = F.relu(self.pool(self.conv5(x)))
-        x = F.relu(self.pool(self.conv6(x)))
-        x = F.relu(self.pool(self.conv7(x)))
 
         # flattens tensor
         x = x.view(x.size(0), -1)  # number of samples in batch
@@ -122,9 +126,9 @@ class RcnnNet(nn.Module):  # have to change numbers depending on data
 
 
 if __name__ == '__main__':
-    rcnn_0 = RcnnNet()#.to('Gpu')
+    rcnn_0 = RcnnNet().to(device)
     train_set, test_set = data_loader()
-    result = train(optim.Adam(rcnn_0.parameters(), lr=0.005, weight_decay= .01), rcnn_0, train_set, test_set)
+    result = train(optim.Adam(rcnn_0.parameters(), lr=0.005, weight_decay=.01), rcnn_0, train_set, test_set)
     plt.plot(result, 'g', label='SGD')
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
