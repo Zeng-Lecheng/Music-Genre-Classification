@@ -34,7 +34,7 @@ class RNNet(nn.Module):
         self.drop_1 = nn.Dropout(0.5)
         self.drop_2 = nn.Dropout(0.3)
         self.fc_1 = nn.Linear(128, 32)
-        self.fc_1_conv = nn.Linear(1776, 32)
+        self.fc_1_conv = nn.Linear(4384, 32)
         self.fc_2 = nn.Linear(32, 16)
         self.fc_3 = nn.Linear(16, 10)
 
@@ -52,7 +52,7 @@ class RNNet(nn.Module):
         # h_0 = torch.relu(hc[0][0])
         # hidden_state = hc[0]
 
-        ave_out = torch.sum(x, dim=1) / x.shape[1]
+        # ave_out = torch.sum(x, dim=1) / x.shape[1]
         x = torch.swapaxes(x, 1, 2)
         x = torch.relu(torch.max_pool1d(self.conv_1(x), 2))
         x = torch.relu(torch.max_pool1d(self.conv_2(x), 2))
@@ -63,15 +63,12 @@ class RNNet(nn.Module):
         return x
 
 
-def model_train(epochs: int,
+def model_train(train_set, test_set,
+                epochs: int,
                 learning_rate: float,
                 batch_size: int,
                 verbose: bool = False,
                 test_while_train: bool = True) -> list[float]:
-    dataset = WavData('../data/genres_original', device=device)
-    train_size = int(len(dataset) * 0.7)
-    test_size = len(dataset) - train_size
-    train_set, test_set = random_split(dataset, [train_size, test_size])
 
     train_dataloader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
     net = RNNet().to(device)
@@ -106,6 +103,8 @@ def model_train(epochs: int,
 
     # Uncomment this if you want to save the trained model.
     # torch.save(net.state_dict(), '../saved_models/rnn_with_cov_final.pt')
+    if not test_while_train:
+        acc = [model_test(test_set, net)]
     return acc
 
 
@@ -113,7 +112,7 @@ def model_test(test_set, net) -> float:
     with torch.no_grad():
         correct_count = 0
         count = 0
-        x_test, y_test = next(iter(DataLoader(test_set, batch_size=200, shuffle=True)))
+        x_test, y_test = next(iter(DataLoader(test_set, batch_size=100, shuffle=True)))
         pred_test = net(x_test)
 
         for i in range(len(pred_test)):
@@ -125,7 +124,31 @@ def model_test(test_set, net) -> float:
     return correct_count / count
 
 
+def get_data():
+    dataset = WavData('../data/genres_original', device=device)
+    train_size = int(len(dataset) * 0.7)
+    test_size = len(dataset) - train_size
+    train_set, test_set = random_split(dataset, [train_size, test_size])
+    return train_set, test_set
+
+
+def hyperparameter_test():
+    train_set, test_set = get_data()
+    learning_rate_list = [0.001, 0.0005, 0.0003, 0.0001, 0.00005]
+    batch_size_list = [50, 100, 200]
+    epochs = 3
+    for b in batch_size_list:
+        for lr in learning_rate_list:
+            acc = model_train(train_set, test_set, epochs=epochs, learning_rate=lr, batch_size=b, verbose=False,
+                              test_while_train=True)
+            plt.plot(range(1, epochs + 1), acc, label=f'batches: {b}, lr: {lr}')
+
+        plt.xlabel("Epoch")
+        plt.ylabel("Percent Accuracy on test set")
+        plt.title('Percent Accuracy over Epochs')
+        plt.legend()
+        plt.show()
+
+
 if __name__ == '__main__':
-    acc = model_train(epochs=1000, learning_rate=.00003, batch_size=50, verbose=False, test_while_train=True)
-    plt.plot(range(1, len(acc) + 1), acc)
-    plt.show()
+    hyperparameter_test()
