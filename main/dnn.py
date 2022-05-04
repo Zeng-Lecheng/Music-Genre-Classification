@@ -1,4 +1,6 @@
+from statistics import mean
 import numpy as np
+import math
 import matplotlib.pyplot as plt
 # import scipy
 from tqdm import tqdm
@@ -9,25 +11,21 @@ import torch.optim as optim
 from torch.utils.data import TensorDataset, DataLoader
 import util
 
-
-def main():
-    pass
+torch.manual_seed(0)
 
 
-def hyperparameter_test_1():
+def hyperparameter_test(trainDataset, testDataset):
     """This function tests out different learning rates and batch sizes and plots them over epochs.
     It becomes clear that LR=0.001 and batch size=10 produces the most consistently best results,
     but is that due to the seed we are currently using? What if I plotted multiple different seeds?"""
-    torch.manual_seed(0)
-    trainDataset, testDataset = read_data()
-
     lr_list = [0.0005, 0.001, 0.005, 0.01]
     b_list = [5, 10, 50, 100, 500, 1000]
 
     for lr in lr_list:
         fig, ax = plt.subplots()
         for b in b_list:
-            ax.plot(model(trainDataset, testDataset, lr, b, 5000, "acc"), label=str(f'Batches={b}, LR={lr}'))
+            acc, loss = model(trainDataset, testDataset, lr, b, 5000, True)
+            ax.plot(acc, label=str(f'Batches={b}, LR={lr}'))
         ax.set_title("Percent Accuracy over Epochs")
         ax.legend()
         plt.xlabel("Epoch")
@@ -35,52 +33,41 @@ def hyperparameter_test_1():
         plt.show()
 
 
-def hyperparameter_test_2():
-    """"""
-    torch.manual_seed(0)
-    fig, ax = plt.subplots()
-    for i in range(0, 5):
-        trainDataset, testDataset = read_data()
-        ax.plot(model(trainDataset, testDataset, 0.005, 500, 5000, "acc"))
-    ax.set_title("Percent Accuracy over Epochs")
-    ax.legend()
-    plt.xlabel("Epoch")
-    plt.ylabel("Percent Accuracy")
-    plt.show()
-
-
 def read_data():
     """I separated out reading the data from the model so that the model could be run multiple times without having
     to reread the data in every time."""
     x, y, length = util.loadCSV(f'../data/features_30_sec.csv')
-    train_length = int(length * 0.8)
-    test_length = int(length * 0.2)
+    train_length = math.floor(length * 0.8)
+    test_length = math.ceil(length * 0.2)
     if train_length + test_length != length:
         raise Exception("you have int problems with the random split")
     trainDataset, testDataset = torch.utils.data.random_split(TensorDataset(x, y), [train_length, test_length])
     return trainDataset, testDataset
 
 
-def model(trainDataset, testDataset, learning_rate: float, batch_num: int, epoch_num: int, rtype: str):
+def model(trainDataset, testDataset, learning_rate: float, batch_num: int, epoch_num: int, verbose: bool):
     loader = DataLoader(trainDataset, batch_size=batch_num)
-    epochs = epoch_num
     net = DeepNeuralNet()
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=learning_rate)
     acc = []
-    with tqdm(total=epoch_num) as progressbar:
-        for epoch in range(0, epochs):  # loop over the dataset multiple times
-            for i, data in enumerate(loader):
-                inputs, labels = data
-                optimizer.zero_grad()
-                outputs = net(inputs)
-                loss = criterion(outputs, labels)
-                loss.backward()
-                optimizer.step()
-            if rtype == "acc":
-                acc.append(model_test(testDataset, net))
-            progressbar.update(1)
-    return acc
+    total_loss = []
+    for epoch in tqdm(range(0, epoch_num)):  # loop over the dataset multiple times
+        loss_in_epoch = []
+        for i, data in enumerate(loader):
+            inputs, labels = data
+            optimizer.zero_grad()
+            outputs = net(inputs)
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
+            if verbose:
+                loss_in_epoch.append(loss.item())
+        if verbose:
+            acc.append(model_test(testDataset, net))
+            total_loss.append(mean(loss_in_epoch))
+    #torch.save(net.state_dict(), '../saved_models/dnn.pt')
+    return acc, total_loss
 
 
 def model_test(testDataset, net):
@@ -120,4 +107,15 @@ class DeepNeuralNet(nn.Module):
         return x
 
 
-hyperparameter_test_2()
+if __name__ == '__main__':
+    trainDataset, testDataset = read_data()
+    acc, total_loss = model(trainDataset, testDataset, 0.001, 10, 2125, True)
+    fig, axs = plt.subplots(2, sharex='col')
+    fig.suptitle('Vertically stacked subplots')
+    fig.suptitle('Percent Accuracy and Loss over Epochs')
+    axs[0].plot(acc)
+    axs[0].set(ylabel='Percent Correct')
+    axs[1].plot(total_loss)
+    axs[1].set(xlabel='Epoch', ylabel='CrossEntropyLoss')
+    plt.show()
+

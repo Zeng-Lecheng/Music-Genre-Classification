@@ -1,25 +1,28 @@
 import torch
 import torch.nn as nn
-from matplotlib import pyplot as plt
 from torch.utils.data import DataLoader, random_split
 import torch.optim as optim
 from tqdm import tqdm
+from matplotlib import pyplot as plt
 
 from util import WavData
-
-device = 'cuda' #fixed : pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu113
 
 # from torch.utils.tensorboard import SummaryWriter
 
 # writer = SummaryWriter()
 
+# fixed : pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu113
+# use cpu by default, change to cuda if you want and change it back before committing
+# we only debug and ensure everything works well on cpu
+device = 'cpu'
+
+# uncomment to run with limited cores
 # torch.set_num_threads(1)
 
 
 class RNNet(nn.Module):
     def __init__(self):
         super().__init__()
-        self.kernel_1 = 5
 
         self.lstm_1 = nn.LSTM(1, 128, 1, batch_first=True)
         self.lstm_2 = nn.LSTM(128, 32, 1, batch_first=True)
@@ -72,7 +75,7 @@ def model_train(epochs: int,
 
     train_dataloader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
     net = RNNet().to(device)
-    net.load_state_dict(torch.load('../saved_models/rnn_with_cov_final.pt'))
+    # net.load_state_dict(torch.load('../saved_models/rnn_with_cov_final.pt'))
     optimizer = optim.Adam(net.parameters(), lr=learning_rate)
     criterion = nn.CrossEntropyLoss().to(device)
 
@@ -101,7 +104,8 @@ def model_train(epochs: int,
 
         # writer.add_scalar('Loss/train', epoch_loss, epoch)
 
-    torch.save(net.state_dict(), '../saved_models/rnn_with_cov_final.pt')
+    # Uncomment this if you want to save the trained model.
+    # torch.save(net.state_dict(), '../saved_models/rnn_with_cov_final.pt')
     return acc
 
 
