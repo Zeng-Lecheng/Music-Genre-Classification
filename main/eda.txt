@@ -10,7 +10,7 @@ New features is a section where we attempt to generate new data features from th
 OLD FEATURES======================
 1. What is a wav file??
     Wav file encodes recorded audio. For us: music.
-    Sampling rate 44.1k, bit depth 2^16 = range[-32768, include32767]
+    Sampling rate 44.1k, bit depth 2^16 = range[-32768, include32767 = 65536]
     At 44.1k or 48k times per second, (up to 2-4) mic/speaker envelope positions are recorded. The bit depth represents
     a breakdown of how precisely the speaker position is different from a still/0 position.
 
