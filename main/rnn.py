@@ -43,9 +43,9 @@ class RNNet(nn.Module):
 
     def forward(self, x):
         # ref: https://www.diva-portal.org/smash/get/diva2:1354738/FULLTEXT01.pdf
-        x, hc = self.rnn_1(x)
-        x, hc = self.rnn_2(x)
-        x, hc = self.rnn_3(x)
+        x, hc = self.lstm_1(x)
+        x, hc = self.lstm_2(x)
+        # x, hc = self.lstm_3(x)
         # x, hc = self.rnn_4(x)
         # out, hc = self.lstm_2(self.drop_1(out))
         # out, hc = self.lstm_3(self.drop_2(out))
@@ -72,9 +72,9 @@ def model_train(train_set, test_set,
 
     train_dataloader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
     net = RNNet().to(device)
-    # net.load_state_dict(torch.load('../saved_models/rnn_with_cov_final.pt'))
+    # net.load_state_dict(torch.load('../saved_models/rnn_0503.pt'))
     optimizer = optim.Adam(net.parameters(), lr=learning_rate)
-    criterion = nn.CrossEntropyLoss().to(device)
+    criterion = nn.CrossEntropyLoss(reduction='sum').to(device)
 
     acc = []
     for epoch in tqdm(range(1, epochs + 1)):
@@ -102,7 +102,7 @@ def model_train(train_set, test_set,
         # writer.add_scalar('Loss/train', epoch_loss, epoch)
 
     # Uncomment this if you want to save the trained model.
-    # torch.save(net.state_dict(), '../saved_models/rnn_with_cov_final.pt')
+    # torch.save(net.state_dict(), '../saved_models/rnn_0503.pt')
     if not test_while_train:
         acc = [model_test(test_set, net)]
     return acc
@@ -126,7 +126,7 @@ def model_test(test_set, net) -> float:
 
 def get_data():
     dataset = WavData('../data/genres_original', device=device)
-    train_size = int(len(dataset) * 0.7)
+    train_size = int(len(dataset) * 0.8)
     test_size = len(dataset) - train_size
     train_set, test_set = random_split(dataset, [train_size, test_size])
     return train_set, test_set
@@ -134,8 +134,10 @@ def get_data():
 
 def hyperparameter_test():
     train_set, test_set = get_data()
-    learning_rate_list = [0.001, 0.0005, 0.0003, 0.0001, 0.00005]
-    batch_size_list = [50, 100, 200]
+    # train_set = pickle.load(open('train_set.pkl', 'rb'))
+    # test_set = pickle.load(open('test_set.pkl', 'rb'))
+    learning_rate_list = [0.001]
+    batch_size_list = [50]
     epochs = 1000
     for b in batch_size_list:
         for lr in learning_rate_list:
@@ -145,7 +147,7 @@ def hyperparameter_test():
 
         plt.xlabel("Epoch")
         plt.ylabel("Percent Accuracy on test set")
-        plt.title('Percent Accuracy over Epochs')
+        plt.title('Accuracy over Epochs')
         plt.legend()
         plt.show()
 
