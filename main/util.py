@@ -7,7 +7,7 @@ import torch
 import torchaudio
 from torch.utils.data import Dataset
 from torchvision.io import read_image
-from torchaudio.transforms import Resample
+from tqdm import tqdm
 
 torch.set_default_dtype(torch.float32)
 
@@ -122,42 +122,31 @@ class WavData(Dataset):
         """
         cats = sorted(os.listdir(path))  # cats = categories
 
-        self.x = torch.zeros((1, 1))
-        self.y = torch.zeros((1, len(cats)))
+        self.x = []
+        self.y = []
+        # Assume sample rates of all the files are the same
+        _, self.sample_rate = torchaudio.load(open(f'{path}/{os.listdir(path)[0]}/{os.listdir(path + "/" + os.listdir(path)[0])[0]}', 'rb'))
+        resampler = torchaudio.transforms.Resample(self.sample_rate, self.sample_rate // 4)
+        with tqdm(total=1000) as pbar:
+            for genre in os.listdir(path):
+                current_onehot = torch_onehot(cats, genre)
+                for file in os.listdir(f'{path}/{genre}'):
+                    if file == 'jazz/00054.wav':
+                        continue
+                    current_x, _ = torchaudio.load(open(f'{path}/{genre}/{file}', 'rb'))
 
-        for genre in os.listdir(path):
-            current_onehot = torch_onehot(cats, genre)
-            for file in os.listdir(f'{path}/{genre}'):
-                # Assume sample rates of all the files are the same
-                current_x, self.sample_rate = torchaudio.load(open(f'{path}/{genre}/{file}', 'rb'))
+                    current_x = resampler(current_x)[:, 0:22050].swapaxes(0, 1)
+                    self.x.append(current_x)
+                    self.y.append(current_onehot[0])
+                    pbar.update(1)
 
-                resampler = Resample(self.sample_rate, self.sample_rate / 10)
-                current_x = resampler(current_x)
-                current_x = current_x[:, 0:2205]  # 1 second audio
-                # Do zero padding if size does not match
-                if current_x.shape[1] > self.x.shape[1]:
-                    pad_self_x = torch.zeros((self.x.shape[0], current_x.shape[1]))
-                    pad_self_x[:, :self.x.shape[1]] = self.x
-                    self.x = torch.concat((pad_self_x, current_x))
-                elif current_x.shape[1] < self.x.shape[1]:
-                    pad_current = torch.zeros(1, self.x.shape[1])
-                    pad_current[:, :current_x.shape[1]] = current_x
-                    self.x = torch.concat((self.x, pad_current))
-                else:
-                    self.x = torch.concat((self.x, current_x))
-
-                self.y = torch.concat((self.y, current_onehot))
-
-        self.x = self.x[1:, :, None]
-        self.x = (self.x - self.x.min()) / (self.x.max() - self.x.min())  # normalization
-        self.y = self.y[1:]
         self.device = device
 
     def __getitem__(self, item):
         return self.x[item].to(self.device), self.y[item].to(self.device)
 
     def __len__(self):
-        return self.x.shape[0]
+        return len(self.x)
 
 
 class PngData(Dataset):
