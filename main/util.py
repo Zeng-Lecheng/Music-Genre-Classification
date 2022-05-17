@@ -131,7 +131,7 @@ class WavData(Dataset):
             for genre in os.listdir(path):
                 current_onehot = torch_onehot(cats, genre)
                 for file in os.listdir(f'{path}/{genre}'):
-                    if file == 'jazz/00054.wav':
+                    if file == 'jazz.00054.wav':
                         continue
                     current_x, _ = torchaudio.load(open(f'{path}/{genre}/{file}', 'rb'))
 
@@ -172,13 +172,14 @@ class PngData(Dataset):
 
         shape = read_image(f'{path}/{cats[0]}/{os.listdir(f"{path}/{cats[0]}")[0]}')[None, :].shape
 
-        self.x = torch.zeros(shape)
+        self.x = []
         self.y = torch.zeros((1, len(cats)))
         for genre in os.listdir(path):
             current_onehot = torch_onehot(cats, genre)
             for file in os.listdir(f'{path}/{genre}'):
-                current_x = read_image(f'{path}/{genre}/{file}')[None, :]
-                self.x = torch.concat((self.x, current_x))
+                if file == 'jazz00054.png':
+                    continue
+                self.x.append(f'{path}/{genre}/{file}')
                 self.y = torch.concat((self.y, current_onehot))
 
         self.x = self.x[1:]
@@ -186,10 +187,10 @@ class PngData(Dataset):
         self.device = device
 
     def __getitem__(self, item):
-        return self.x[item].to(self.device), self.y[item].to(self.device)
+        return read_image(self.x[item]).to(self.device), self.y[item].to(self.device)
 
     def __len__(self):
-        return self.x.shape[0]
+        return len(self.x)
 
 
 class MultiSourceData(Dataset):
