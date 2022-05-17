@@ -85,7 +85,7 @@ def model_train(train_set, test_set,
             batch_loss = criterion(pred_train, y_train)
             batch_loss.backward()
             optimizer.step()
-            epoch_loss += batch_loss.item()
+            epoch_loss += batch_loss.item() * len(x_train)
 
         epoch_loss = epoch_loss / len(train_set)
         if test_while_train:
