@@ -24,7 +24,7 @@ class RNNet(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.lstm_1 = nn.LSTM(1, 32, 1, batch_first=True)
+        self.lstm_1 = nn.LSTM(1, 16, 1, batch_first=True)
         self.lstm_2 = nn.LSTM(32, 12, 1, batch_first=True)
         self.lstm_3 = nn.LSTM(32, 32, 1, batch_first=True)
         self.rnn_1 = nn.RNN(1, 64, 1, batch_first=True)
@@ -56,9 +56,9 @@ class RNNet(nn.Module):
         # x = torch.relu(torch.max_pool1d(self.conv_2(x), 2))
         # x = torch.flatten(hidden_state, 1)
         # x = torch.relu(self.fc_1_conv(x))
-        x = torch.relu(self.fc_1(hidden_state))
-        x = torch.relu(self.fc_2(x))
-        x = torch.sigmoid(self.fc_3(x))
+        # x = torch.relu(self.fc_1(hidden_state))
+        # x = torch.relu(self.fc_2(x))
+        x = torch.sigmoid(self.fc_3(hidden_state))
         return x
 
 
@@ -154,8 +154,8 @@ def hyperparameter_test():
 
 if __name__ == '__main__':
     epochs = 1000
-    lr = .003
-    batch = 30
+    lr = .0005
+    batch = 60
     weight_decay = 0
     train_set, test_set = get_data()
     writer = SummaryWriter(comment=f'lr{lr}_batch{batch}_l2{weight_decay}')
