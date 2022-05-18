@@ -96,6 +96,8 @@ class RcnnNet(nn.Module):  # have to change numbers depending on data
         self.conv6 = nn.Conv2d(32, 32, 1, 1)
         self.conv7 = nn.Conv2d(32, 32, 1, 1)
         self.conv8 = nn.Conv2d(32, 64, 5, 1)
+        self.conv9 = nn.Conv2d(64, 128, 5, 1)
+        self.conv10 = nn.Conv2d(128, 256, 5, 1)
 
         self.fc_1 = nn.Linear(20608, 120)
         self.fc_2 = nn.Linear(120, 64)
@@ -104,18 +106,20 @@ class RcnnNet(nn.Module):  # have to change numbers depending on data
 
     def forward(self, x):
         x = torch.relu(self.pool(self.conv1(x)))
-        x_pre_input = x
-        x = torch.relu(self.conv2(x))
-        x = torch.relu(self.conv3(x))
-        # residual connection
-        x = x + x_pre_input
+        # x_pre_input = x
+        # x = torch.relu(self.conv2(x))
+        # x = torch.relu(self.conv3(x))
+        # # residual connection
+        # x = x + x_pre_input
         x = torch.relu(self.pool(self.conv4(x)))
         x = torch.relu(self.pool(self.conv5(x)))
-        x_pre_input = x
-        x = torch.relu(self.conv6(x))
-        x = torch.relu(self.conv7(x))
-        x = x + x_pre_input
+        # x_pre_input = x
+        # x = torch.relu(self.conv6(x))
+        # x = torch.relu(self.conv7(x))
+        # x = x + x_pre_input
         x = torch.relu(self.pool(self.conv8(x)))
+        # x = torch.relu(self.pool(self.conv9(x)))
+        # x = torch.relu(self.pool(self.conv10(x)))
 
         # flattens tensor
         x = x.view(x.size(0), -1)  # number of samples in batch
@@ -127,8 +131,8 @@ class RcnnNet(nn.Module):  # have to change numbers depending on data
 
 
 if __name__ == '__main__':
-    writer = SummaryWriter(comment='res2_lr0.002_batch20_wd0.0001')
+    writer = SummaryWriter(comment='cnn2_lr0.0005_batch20_wd0.0001')
     rcnn_0 = RcnnNet().to(device)
     train, test = data_loader()
-    adam = optim.Adam(rcnn_0.parameters(), lr=0.001, weight_decay=.0001)
+    adam = optim.Adam(rcnn_0.parameters(), lr=0.0005, weight_decay=.0001)
     result = model_train(adam, rcnn_0, epochs=1000, batch_size=20, train_set=train, test_set=test)
