@@ -5,7 +5,7 @@ import torch
 # requires: pip install PySoundFile to avoid RuntimeErr: No audio I/O backend is available.
 # https://stackoverflow.com/questions/62543843/cannot-import-torch-audio-no-audio-backend-is-available
 import torchaudio
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 from torchvision.io import read_image
 from tqdm import tqdm
 
@@ -99,6 +99,23 @@ def torch_onehot(cats: list[str], key: str) -> torch.Tensor:
         result = torch.zeros(1, len(cats))
         result[0, i] = 1
         return result
+
+
+def model_test(net, test_set):
+    net.eval()
+    with torch.no_grad():
+        correct_count = 0
+        count = 0
+        x_test, y_test = next(iter(DataLoader(test_set, batch_size=20, shuffle=True)))
+        pred_test = net(x_test)
+
+        for i in range(len(pred_test)):
+            pred_label = torch.argmax(pred_test[i])
+            true_label = torch.argmax(y_test[i])
+            if pred_label.item() == true_label.item():
+                correct_count += 1
+            count += 1
+    return correct_count / count
 
 
 class WavData(Dataset):
