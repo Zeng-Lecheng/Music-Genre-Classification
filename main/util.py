@@ -204,7 +204,10 @@ class PngData(Dataset):
         self.device = device
 
     def __getitem__(self, item):
-        return read_image(self.x[item]).type(torch.FloatTensor).to(self.device), self.y[item].to(self.device)
+        x = read_image(self.x[item]).type(torch.FloatTensor).to(self.device)
+        y = self.y[item].to(self.device)
+        x = x / 255.
+        return x, y
 
     def __len__(self):
         return len(self.x)
