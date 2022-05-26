@@ -95,8 +95,8 @@ if __name__ == '__main__':
 
     train_set, test_set = get_data()
 
-    encoder, decoder = model_train(train_set, 100, batch_size, learning_rate)
-    test_img = next(iter(DataLoader(test_set, batch_size=1)))
+    encoder, decoder = model_train(train_set, 30, batch_size, learning_rate)
+    test_img, test_y = next(iter(DataLoader(test_set, batch_size=1)))
     test_output = decoder(encoder(test_img))
     save_image(test_img, 'input.png')
     save_image(test_output, 'output.png')
